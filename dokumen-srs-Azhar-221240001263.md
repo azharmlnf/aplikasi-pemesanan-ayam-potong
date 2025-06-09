@@ -1,186 +1,175 @@
-### Dokumen Software Requirement Specification (SRS)
+## 📦 Dokumen Software Requirement Specification (SRS)
 
-## Aplikasi Pemesanan es batu
+### Aplikasi Pemesanan Es Batu 'Pesan Es'
 
-**Versi:** 0.1
-**Tanggal:** 27 Mei 2025
-**Penyusun:** Azhar Maulana F (221240001263)
+**Versi:** 0.2
+**Tanggal:** 23 Mei 2024
+**Penyusun:** Tim Pengembang
 
 ---
 
-### 1. Pendahuluan
+## 1. Pendahuluan
 
+### 1.1 Tujuan Dokumen
 
-#### 1.1 Tujuan Dokumen
+Dokumen ini mendefinisikan kebutuhan perangkat lunak untuk MVP aplikasi **Pesan Es**, yang memungkinkan customer memesan es batu dan admin mengelola produk serta pesanan.
 
-Dokumen ini disusun untuk mendefinisikan kebutuhan perangkat lunak dari Minimum Viable Product (MVP) aplikasi Pesan Es. Tujuannya adalah untuk menjadi acuan utama bagi tim pengembang dalam membangun aplikasi yang memungkinkan customer memesan es batu dan admin mengelola pesanan serta produk.
+### 1.2 Ruang Lingkup Produk
 
-#### 1.2 Ruang Lingkup Produk (MVP)
+Aplikasi mobile (Flutter) yang memungkinkan:
 
-Aplikasi Pesan Es adalah aplikasi mobile berbasis Flutter yang memungkinkan pengguna untuk:
+* Customer: Registrasi, login, lihat produk, tambah ke keranjang, dan pesan es.
+* Admin: CRUD produk, lihat dan ubah status pesanan.
 
-* Mendaftar dan login sebagai Customer atau Admin (berdasarkan peran).
-* Customer dapat melihat daftar produk, menambahkan ke keranjang, dan membuat pesanan.
-* Admin dapat mengelola (membuat, membaca, mengubah, menghapus) produk.
-* Admin dapat melihat dan mengubah status pesanan yang masuk.
+**Catatan:** Tidak mencakup pembayaran online atau pengiriman.
 
-Pembayaran online dan sistem pengiriman tidak termasuk dalam lingkup MVP ini.
+### 1.3 Istilah
 
-#### 1.3 Definisi, Akronim, dan Singkatan
+* **MVP:** Minimum Viable Product
+* **BaaS:** Backend-as-a-Service
+* **CRUD:** Create, Read, Update, Delete
 
-* MVP: Minimum Viable Product
-* UI: User Interface
-* UX: User Experience
-* BaaS: Backend-as-a-Service
-* SRS: Software Requirement Specification
-* CRUD: Create, Read, Update, Delete
+---
 
-### 2. Deskripsi Umum
+## 2. Deskripsi Umum
 
-#### 2.1 Perspektif Produk
+### 2.1 Perspektif Produk
 
-Aplikasi ini merupakan sistem mobile mandiri yang memanfaatkan Appwrite sebagai backend untuk autentikasi, database, dan penyimpanan file (gambar produk). Aplikasi memiliki dua antarmuka utama yang ditentukan oleh peran pengguna setelah login.
+Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimpanan gambar produk.
 
-#### 2.2 Fungsi Utama Produk
+### 2.2 Fungsi Utama
 
-* Autentikasi dan manajemen peran pengguna (Admin & Customer).
-* Manajemen produk (CRUD) oleh Admin.
-* Katalog produk untuk Customer.
-* Sistem keranjang belanja dan pembuatan pesanan.
-* Manajemen pesanan (melihat dan update status) oleh Admin.
+* Login/Registrasi Customer & Admin
+* CRUD Produk oleh Admin
+* Pemesanan Produk oleh Customer
+* Manajemen status pesanan oleh Admin
 
-#### 2.3 Karakteristik Pengguna
+### 2.3 Karakteristik Pengguna
 
-* Customer: Pengguna umum, pemilik usaha kecil (warung, kafe), atau penyelenggara acara yang membutuhkan pasokan es batu.
-* Admin: Pemilik atau staf toko es batu yang bertanggung jawab mengelola produk dan pesanan.
+* **Customer:** Warung, kafe, EO yang butuh pasokan es
+* **Admin:** Pengelola toko es batu
 
-#### 2.4 Batasan Umum
+### 2.4 Batasan
 
-* Aplikasi tidak menangani proses pembayaran; transaksi diasumsikan terjadi secara offline.
-* Tidak ada fitur pelacakan pengiriman (delivery tracking).
-* Penentuan peran admin dilakukan secara manual melalui Appwrite Console.
-* Tidak ada fitur pencarian, filter, atau rating produk pada versi MVP.
+* Tanpa sistem pembayaran dan pengiriman
+* Role admin ditentukan manual via Appwrite Console
+* Tidak ada fitur pencarian, filter, rating
 
-#### 2.5 Asumsi dan Ketergantungan
+### 2.5 Asumsi
 
-* Pengguna memiliki koneksi internet yang aktif untuk menggunakan aplikasi.
-* Layanan Appwrite (cloud atau self-hosted) berjalan stabil.
-* Gambar produk disediakan oleh Admin.
+* Koneksi internet aktif
+* Appwrite berjalan stabil
+* Username bersifat unik
 
-### 3. Kebutuhan Spesifik
+---
 
-#### 3.1 Alur Pengguna
+## 3. Kebutuhan Spesifik
 
-1. Pengguna membuka aplikasi.
-2. Melakukan registrasi (default sebagai Customer) atau login.
-3. Jika Customer: Diarahkan ke Halaman Produk, memilih produk, menambah ke keranjang, checkout, dan melihat riwayat pesanan.
-4. Jika Admin: Diarahkan ke Dashboard Admin, dapat melihat pesanan masuk atau mengelola produk (tambah/edit/hapus).
-5. Admin mengubah status pesanan yang masuk (misal: dari "Pending" ke "Diproses").
+### 3.1 Alur Pengguna
 
-#### 3.2 Kebutuhan Fungsional
+1. Registrasi atau login
+2. Akses sesuai peran:
 
-* **F01**: Pengguna dapat mendaftar dengan email & password.
-* **F02**: Pengguna dapat login dan diarahkan sesuai perannya (Admin/Customer).
-* **F03**: Customer dapat melihat daftar semua produk.
-* **F04**: Customer dapat membuat pesanan dari produk yang ada di keranjang.
-* **F05**: Admin dapat melakukan CRUD pada data produk (termasuk upload gambar).
-* **F06**: Admin dapat melihat semua pesanan yang masuk.
-* **F07**: Admin dapat mengubah status pesanan.
+   * Customer: lihat produk → tambah keranjang → checkout → lihat riwayat
+   * Admin: lihat pesanan & detail → ubah status → kelola produk
 
-#### 3.3 Kebutuhan Non-Fungsional
+### 3.2 Kebutuhan Fungsional
 
-* **NF01**: Aplikasi harus dapat berjalan di platform Android dan iOS.
-* **NF02**: Waktu respon untuk menampilkan data dari server maksimal 3 detik.
-* **NF03**: UI harus bersih, minimalis, dan mudah dipahami.
-* **NF04**: Aplikasi harus memberikan feedback visual (loading indicator, notifikasi error) untuk setiap aksi yang membutuhkan waktu.
+* **F01:** Registrasi dengan email, password, username unik, dan no\_hp
+* **F02:** Login sesuai peran (redirect ke dashboard)
+* **F03:** Customer melihat daftar produk
+* **F04:** Customer memesan dan sistem simpan item + harga saat itu
+* **F05:** Admin melakukan CRUD produk
+* **F06:** Admin melihat pesanan + detail item
+* **F07:** Admin mengubah status pesanan
 
-#### 3.4 Kebutuhan Antarmuka Eksternal
+### 3.3 Kebutuhan Non-Fungsional
 
-* Appwrite SDK (Flutter): Untuk komunikasi dengan backend (Auth, Database, Storage).
+* **NF01:** Support Android & iOS
+* **NF02:** Waktu respon < 3 detik
+* **NF03:** UI minimalis & mudah dipahami
+* **NF04:** Feedback visual untuk loading/error
 
-### 4. Rancangan Skema Database (Appwrite)
+### 3.4 Antarmuka Eksternal
 
-**Collection: users (Bawaan Appwrite)**
+* Flutter Appwrite SDK: auth, database, storage
 
-| Field | Type   | Description                |
+---
+
+## 4. Rancangan Skema Database (Appwrite)
+
+### 📁 Koleksi: `users` (Auth bawaan Appwrite)
+
+| Field | Type   | Keterangan                 |
 | ----- | ------ | -------------------------- |
 | \$id  | string | ID unik dari Appwrite Auth |
 | email | string | Email pengguna             |
-| name  | string | Nama pengguna              |
+| name  | string | Diisi dengan username      |
 
-**Collection: profiles**
+### 📁 Koleksi: `profiles`
 
-| Field | Type   | Description                     | Notes                  |
-| ----- | ------ | ------------------------------- | ---------------------- |
-| \$id  | string | Appwrite Document ID (PK)       | Sama dengan users.\$id |
-| name  | string | Nama lengkap pengguna           |                        |
-| role  | string | Peran pengguna (customer/admin) | Default: customer      |
+| Field         | Type   | Keterangan                           |
+| ------------- | ------ | ------------------------------------ |
+| \$id          | string | Sama dengan users.\$id               |
+| username      | string | Unik untuk tampilan display          |
+| phone\_number | string | Nomor HP                             |
+| role          | string | customer / admin (default: customer) |
 
-**Collection: products**
+### 📁 Koleksi: `products`
 
-| Field       | Type    | Description               | Notes                 |
-| ----------- | ------- | ------------------------- | --------------------- |
-| \$id        | string  | Appwrite Document ID (PK) |                       |
-| name        | string  | Nama produk               |                       |
-| description | string  | Deskripsi produk          |                       |
-| price       | double  | Harga produk per unit     |                       |
-| imageUrl    | string  | URL gambar produk         | Dari Appwrite Storage |
-| stock       | integer | Jumlah stok yang tersedia |                       |
+| Field       | Type    | Keterangan        |
+| ----------- | ------- | ----------------- |
+| \$id        | string  | ID produk         |
+| name        | string  | Nama produk       |
+| description | string  | Deskripsi produk  |
+| price       | double  | Harga per unit    |
+| imageUrl    | string  | URL gambar produk |
+| stock       | integer | Stok tersedia     |
 
-**Collection: orders**
+### 📁 Koleksi: `orders`
 
-| Field              | Type     | Description                            | Notes                   |
-| ------------------ | -------- | -------------------------------------- | ----------------------- |
-| \$id               | string   | Appwrite Document ID (PK)              |                         |
-| customerId         | string   | ID pengguna yang memesan               | Relasi ke profiles.\$id |
-| customerName       | string   | Nama pengguna yang memesan             |                         |
-| products\_snapshot | string   | Data produk saat dipesan (format JSON) | Mencegah inkonsistensi  |
-| totalPrice         | double   | Total harga pesanan                    |                         |
-| status             | string   | Status pesanan (pending, processed)    |                         |
-| orderDate          | datetime | Tanggal dan waktu pesanan dibuat       | Disimpan sbg ISO 8601   |
+| Field      | Type     | Keterangan          |
+| ---------- | -------- | ------------------- |
+| \$id       | string   | ID pesanan          |
+| customerId | string   | FK ke profiles.\$id |
+| totalPrice | double   | Total harga pesanan |
+| status     | string   | pending / processed |
+| orderDate  | datetime | Timestamp ISO8601   |
 
-### 5. Arsitektur Sistem
+### 📁 Koleksi: `order_items`
 
-* **Frontend**: Aplikasi mobile cross-platform dibangun dengan Flutter.
-* **Backend**: Appwrite sebagai BaaS.
-* **Appwrite Auth**: Mengelola autentikasi pengguna.
-* **Appwrite Database**: Menyimpan data profiles, products, dan orders.
-* **Appwrite Storage**: Menyimpan file gambar untuk produk.
+| Field        | Type    | Keterangan          |
+| ------------ | ------- | ------------------- |
+| \$id         | string  | ID item pesanan     |
+| orderId      | string  | FK ke orders.\$id   |
+| productId    | string  | FK ke products.\$id |
+| quantity     | integer | Jumlah produk       |
+| priceAtOrder | double  | Harga saat dipesan  |
 
-### 6. Estimasi Timeline Pengembangan (6 Minggu)
+---
 
-| Minggu | Aktivitas                                                        |
-| ------ | ---------------------------------------------------------------- |
-| 1      | Setup project Flutter & Appwrite, desain UI/UX dasar.            |
-| 2      | Implementasi alur Login & Registrasi, penentuan peran.           |
-| 3      | Halaman Customer: Menampilkan produk, keranjang, dan checkout.   |
-| 4      | Halaman Admin: CRUD (Create, Read, Update, Delete) untuk produk. |
-| 5      | Halaman Admin: Menampilkan daftar pesanan dan update status.     |
-| 6      | Pengujian end-to-end, perbaikan bug, dan finalisasi UI/UX.       |
+## 5. Arsitektur Sistem
 
-### 7. Diagram Alur
+* **Frontend:** Flutter Mobile App (Android/iOS)
+* **Backend:** Appwrite BaaS
+* **Storage:** Gambar produk (via Appwrite Storage)
+* **Auth:** Appwrite Auth
+* **Database:** Appwrite Database (collections di atas)
 
-```mermaid
-graph TD
-    A[Mulai Aplikasi] --> B{Sudah Login?};
-    B -- Tidak --> C[Halaman Login/Registrasi];
-    C --> D[Proses Login];
-    D --> E{Peran?};
-    B -- Ya --> E;
+---
 
-    E -- Customer --> F[Halaman Customer: Daftar Produk];
-    F --> G[Keranjang Belanja];
-    G --> H[Checkout & Buat Pesanan];
-    H --> I[Halaman Riwayat Pesanan];
+## 6. Timeline Pengembangan (6 Minggu)
 
-    E -- Admin --> J[Dashboard Admin];
-    J --> K[Manajemen Pesanan];
-    J --> L[Manajemen Produk];
-    K --> J;
-    L --> J;
-```
+* Minggu 1: Setup project, auth, dan struktur koleksi
+* Minggu 2: CRUD produk
+* Minggu 3: Keranjang & order\_items
+* Minggu 4: Checkout & pesanan
+* Minggu 5: Admin dashboard & status pesanan
+* Minggu 6: Testing, UI polishing
 
-### 8. Relasi Database (ER Diagram)
+---
+
+## 7. Diagram ER (Relasi Database)
 
 ```mermaid
 erDiagram
@@ -190,31 +179,43 @@ erDiagram
     }
 
     profiles {
-        string userId PK "Sama dengan users.userId"
-        string name
+        string userId PK "Relasi ke users.$id"
+        string username "Unique Index"
+        string phone_number
         string role
     }
 
     products {
-        string productId PK "Appwrite Document $id"
+        string productId PK "Appwrite Doc $id"
         string name
         double price
         string imageUrl
     }
 
     orders {
-        string orderId PK "Appwrite Document $id"
-        string customerId FK "Relasi ke profiles(userId)"
-        string products_snapshot "JSON Data"
+        string orderId PK "Appwrite Doc $id"
+        string customerId FK "Relasi ke profiles.userId"
         double totalPrice
         string status
         datetime orderDate
     }
 
+    order_items {
+        string orderItemId PK "Appwrite Doc $id"
+        string orderId FK "Relasi ke orders.orderId"
+        string productId FK "Relasi ke products.productId"
+        int quantity
+        double priceAtOrder "Snapshot harga"
+    }
+
     users ||--o| profiles : "has one"
-    profiles ||--o{ orders : "places"
+    profiles ||--|{ orders : "places"
+    orders ||--|{ order_items : "contains"
+    products ||--o{ order_items : "is part of"
 ```
 
-### 9. Penutup
+---
 
-Dokumen ini menjadi landasan dan acuan utama untuk pengembangan MVP aplikasi 'Pesan Es'. Dokumen dapat diperbarui seiring dengan perkembangan proyek.
+## 8. Penutup
+
+Dokumen ini menjadi acuan utama pengembangan aplikasi 'Pesan Es' versi MVP. Dapat diperbarui jika ada perubahan kebutuhan dan pengembangan lanjutan.

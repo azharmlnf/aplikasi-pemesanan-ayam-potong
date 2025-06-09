@@ -1,107 +1,108 @@
-## ❌✅📊 Progress Iterasi (Detail & Terperinci)
+## ✅📊 Progress Iterasi (Detail & Terperinci)
 
 ---
 
-### Iterasi Minggu ke-1 – Setup & Autentikasi Dasar
+### Iterasi Minggu ke-1 – Fondasi, Autentikasi & Profil Pengguna
 
-| Task                                                                                                  | Status |
-| ----------------------------------------------------------------------------------------------------- | ------ |
-| 1. Setup project Flutter dengan struktur folder dan dependensi dasar                                  | ✅      |
-| 2. Setup Appwrite backend: konfigurasi auth & database collections                                    | ✅      |
-| 3. Buat koleksi database di Appwrite: `users` (gabungkan profil & auth minimal data)                  | ✅      |
-| 4. Buat koleksi database di Appwrite: `meetings`                                                      | ✅      |
-| 5. Buat koleksi database di Appwrite: `notes`                                                         | ✅      |
-| 6. Implementasi fungsi registrasi user baru dengan `account.create` (input email, password, username) | ✅      |
-| 7. Implementasi fungsi login dengan `account.createEmailSession` (email + password)                   | ✅      |
-| 8. Validasi input pada form registrasi dan login (email format, password kuat, username unik)         | ❌      |
-| 9. Simpan data `email` dan `username` sebagai atribut tambahan pada dokumen `users`                   | ❌      |
+| Task                                                                                           | Status |
+| ---------------------------------------------------------------------------------------------- | ------ |
+| 1. Setup project Flutter dengan struktur folder & dependensi (appwrite)                       | ❌     |
+| 2. Setup Appwrite: buat semua collections (profiles, products, orders, order_items)            | ❌     |
+| 3. Buat Unique Index pada field username di collection profiles                                | ❌     |
+| 4. Implementasi fungsi registrasi (account.create) dengan input (email, password, nama)       | ❌     |
+| 5. Buat logic untuk membuat dokumen di profiles (dengan username, phone_number, role) setelah registrasi | ❌     |
+| 6. Implementasi fungsi login (account.createEmailSession) dan logout (account.deleteSession)   | ❌     |
+| 7. Buat logic routing: setelah login, periksa role dari profiles & arahkan ke halaman sesuai  | ❌     |
 
-**Total task = 9**
-**Task selesai = 7**
-**Persentase progress = (7/9) × 100% ≈ 77.78%**
+**Total task = 7**  
+**Task selesai = 0**  
+**Persentase progress = (0/7) × 100% = 0%**
 
 ---
 
-### Iterasi Minggu ke-2 – Halaman Customer: Katalog & Keranjang
+### Iterasi Minggu ke-2 – Halaman Admin: Manajemen Produk (CRUD)
 
-| Task                                                                                      | Status |
-| ----------------------------------------------------------------------------------------- | ------ |
-| 1. Desain UI halaman utama Customer untuk menampilkan daftar produk                       | ❌      |
-| 2. Buat service untuk mengambil (fetch) data dari collection `products`                   | ❌      |
-| 3. Tampilkan daftar produk di UI dengan gambar, nama, dan harga                           | ❌      |
-| 4. Implementasi state management untuk keranjang belanja (local state atau provider/bloc) | ❌      |
-| 5. Tambahkan fungsionalitas "Tambah ke Keranjang" pada setiap produk                      | ❌      |
-| 6. Buat halaman Keranjang Belanja untuk menampilkan ringkasan & total harga               | ❌      |
+| Task                                                                                         | Status |
+| -------------------------------------------------------------------------------------------- | ------ |
+| 1. Desain UI Dashboard Admin dengan navigasi ke "Produk" dan "Pesanan"                       | ❌     |
+| 2. Buat halaman daftar produk untuk Admin dengan tombol Aksi (Edit, Hapus)                  | ❌     |
+| 3. Buat Form untuk menambah & mengedit produk (nama, deskripsi, harga, stok)                | ❌     |
+| 4. Implementasi fungsi upload gambar ke Appwrite Storage saat menambah produk                | ❌     |
+| 5. Implementasi logic Create, Update, dan Delete untuk dokumen di products                   | ❌     |
 
-**Total task = 6**
-**Task selesai = 0**
+**Total task = 5**  
+**Task selesai = 0**  
+**Persentase progress = (0/5) × 100% = 0%**
+
+---
+
+### Iterasi Minggu ke-3 – Halaman Customer: Katalog & Keranjang Belanja
+
+| Task                                                                                         | Status |
+| -------------------------------------------------------------------------------------------- | ------ |
+| 1. Desain UI halaman utama Customer untuk menampilkan daftar produk                          | ❌     |
+| 2. Buat service untuk mengambil (fetch) data dari collection products                        | ❌     |
+| 3. Tampilkan daftar produk di UI dengan gambar, nama, dan harga                             | ❌     |
+| 4. Implementasi state management untuk keranjang belanja (local state)                      | ❌     |
+| 5. Tambahkan fungsionalitas "Tambah ke Keranjang" & "Ubah Kuantitas"                        | ❌     |
+| 6. Buat halaman Keranjang Belanja untuk menampilkan ringkasan & total harga                 | ❌     |
+
+**Total task = 6**  
+**Task selesai = 0**  
 **Persentase progress = (0/6) × 100% = 0%**
 
 ---
 
-### Iterasi Minggu ke-3 – Checkout & Riwayat Pesanan
+### Iterasi Minggu ke-4 – Proses Checkout & Pembuatan Pesanan
 
-| Task                                                                                      | Status |
-| ----------------------------------------------------------------------------------------- | ------ |
-| 1. Implementasi fungsi Checkout dari halaman keranjang                                    | ❌      |
-| 2. Buat dokumen baru di collection `orders` berdasarkan keranjang & status awal `pending` | ❌      |
-| 3. Kosongkan keranjang belanja setelah pesanan berhasil dibuat                            | ❌      |
-| 4. Tampilkan notifikasi atau dialog bahwa pesanan berhasil dibuat                         | ❌      |
-| 5. Buat halaman "Riwayat Pesanan Saya" untuk customer                                     | ❌      |
-| 6. Ambil dan tampilkan daftar pesanan berdasarkan `userId` customer yang login            | ❌      |
+| Task                                                                                         | Status |
+| -------------------------------------------------------------------------------------------- | ------ |
+| 1. Implementasi fungsi "Checkout" dari halaman keranjang                                    | ❌     |
+| 2. Langkah 1 Checkout: Buat dokumen baru di orders dengan status 'pending' dan totalPrice 0 | ❌     |
+| 3. Langkah 2 Checkout: Loop setiap item di keranjang & buat dokumen baru di order_items     | ❌     |
+| 4. Langkah 3 Checkout: Hitung total harga dari semua order_items, lalu update field totalPrice di orders | ❌     |
+| 5. Kosongkan keranjang belanja setelah semua proses berhasil                               | ❌     |
+| 6. Tampilkan notifikasi atau dialog bahwa pesanan berhasil dibuat                           | ❌     |
 
-**Total task = 6**
-**Task selesai = 0**
+**Total task = 6**  
+**Task selesai = 0**  
 **Persentase progress = (0/6) × 100% = 0%**
 
 ---
 
-### Iterasi Minggu ke-4 – Admin: Manajemen Produk (CRUD)
+### Iterasi Minggu ke-5 – Dashboard Admin & Riwayat Customer
 
-| Task                                                                                    | Status |
-| --------------------------------------------------------------------------------------- | ------ |
-| 1. Desain UI halaman Dashboard Admin dengan navigasi ke Produk & Pesanan                | ❌      |
-| 2. Buat halaman daftar produk untuk Admin dengan tombol Aksi (Edit, Hapus)              | ❌      |
-| 3. Buat form untuk menambah dan mengedit produk (nama, deskripsi, harga, stok)          | ❌      |
-| 4. Implementasi upload gambar produk ke Appwrite Storage                                | ❌      |
-| 5. Implementasi fungsi Create, Read, Update, dan Delete dokumen pada koleksi `products` | ❌      |
+| Task                                                                                         | Status |
+| -------------------------------------------------------------------------------------------- | ------ |
+| 1. Buat halaman daftar pesanan masuk untuk Admin, tampilkan orderId, totalPrice, status     | ❌     |
+| 2. Buat halaman detail pesanan Admin: tampilkan detail order_items (produk, qty, harga)     | ❌     |
+| 3. Implementasi fungsi untuk mengubah status pesanan (pending -> processed) pada Admin      | ❌     |
+| 4. Buat halaman "Riwayat Pesanan Saya" untuk Customer                                      | ❌     |
+| 5. Ambil dan tampilkan data pesanan milik Customer yang sedang login                        | ❌     |
 
-**Total task = 5**
-**Task selesai = 0**
+**Total task = 5**  
+**Task selesai = 0**  
 **Persentase progress = (0/5) × 100% = 0%**
 
 ---
 
-### Iterasi Minggu ke-5 – Admin: Manajemen Pesanan
+### Iterasi Minggu ke-6 – Pengujian, Polishing, & Finalisasi
 
-| Task                                                                            | Status |
-| ------------------------------------------------------------------------------- | ------ |
-| 1. Buat halaman daftar pesanan masuk untuk Admin                                | ❌      |
-| 2. Ambil dan tampilkan semua data dari collection `orders`                      | ❌      |
-| 3. Implementasi fungsi untuk mengubah status pesanan (`pending` -> `processed`) | ❌      |
-| 4. Tambahkan feedback visual seperti loading indicator saat proses berlangsung  | ❌      |
-| 5. Tambahkan penanganan error (contoh: tampilkan snackbar saat login gagal)     | ❌      |
+| Task                                                                                         | Status |
+| -------------------------------------------------------------------------------------------- | ------ |
+| 1. Lakukan pengujian alur Customer (registrasi -> login -> pesan -> lihat riwayat)          | ❌     |
+| 2. Lakukan pengujian alur Admin (login -> tambah produk -> lihat detail pesanan -> ubah status) | ❌  |
+| 3. Tambahkan feedback visual (loading indicator, snackbar) di semua proses async            | ❌     |
+| 4. Perbaiki semua bug kritis dan masalah UI/UX yang ditemukan saat pengujian                | ❌     |
+| 5. Buat build rilis untuk Android (.apk) dan persiapkan untuk build iOS                      | ❌     |
 
-**Total task = 5**
-**Task selesai = 0**
+**Total task = 5**  
+**Task selesai = 0**  
 **Persentase progress = (0/5) × 100% = 0%**
 
 ---
 
-### Iterasi Minggu ke-6 – Pengujian & Rilis
-
-| Task                                                                                        | Status |
-| ------------------------------------------------------------------------------------------- | ------ |
-| 1. Pengujian alur Customer (registrasi -> login -> pilih produk -> checkout -> riwayat)     | ❌      |
-| 2. Pengujian alur Admin (login -> tambah produk -> lihat pesanan -> ubah status)            | ❌      |
-| 3. Perbaikan bug kritis yang ditemukan selama pengujian end-to-end                          | ❌      |
-| 4. Refactor dan clean up kode: konsistensi penamaan, hapus unused imports, komentar penting | ❌      |
-| 5. Buat build rilis Android (.apk) dan persiapkan dokumentasi/manual deployment             | ❌      |
-
-**Total task = 5**
-**Task selesai = 0**
-**Persentase progress = (0/5) × 100% = 0%**
-
----
-
-📌 **Catatan:** Tanda ✅ berarti sudah selesai, ❌ berarti belum selesai. Progress diperbarui setiap akhir minggu untuk melacak kemajuan proyek secara objektif dan transparan.
+📌 **Catatan:**  
+- Tanda ✅ berarti sudah selesai  
+- Tanda ❌ berarti belum selesai  
+- Progress dapat diperbarui setiap akhir minggu untuk melacak kemajuan proyek
