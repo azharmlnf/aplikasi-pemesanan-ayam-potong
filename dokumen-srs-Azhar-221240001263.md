@@ -111,9 +111,10 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 | Field         | Type   | Keterangan                           |
 | ------------- | ------ | ------------------------------------ |
 | \$id          | string | Sama dengan users.\$id               |
+| name | string | Nama                            |
 | username      | string | Unik untuk tampilan display          |
 | phone\_number | string | Nomor HP                             |
-| role          | string | customer / admin (default: customer) |
+| role          | enum | customer / admin (default: customer) |
 
 ### 📁 Koleksi: `products`
 
@@ -180,9 +181,10 @@ erDiagram
 
     profiles {
         string userId PK "Relasi ke users.$id"
+        string name
         string username "Unique Index"
         string phone_number
-        string role
+        enum role "admin  atau customer"
     }
 
     products {

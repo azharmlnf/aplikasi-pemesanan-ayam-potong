@@ -6,17 +6,17 @@
 
 | Task                                                                                           | Status |
 | ---------------------------------------------------------------------------------------------- | ------ |
-| 1. Setup project Flutter dengan struktur folder & dependensi (appwrite)                       | ❌     |
-| 2. Setup Appwrite: buat semua collections (profiles, products, orders, order_items)            | ❌     |
-| 3. Buat Unique Index pada field username di collection profiles                                | ❌     |
-| 4. Implementasi fungsi registrasi (account.create) dengan input (email, password, nama)       | ❌     |
-| 5. Buat logic untuk membuat dokumen di profiles (dengan username, phone_number, role) setelah registrasi | ❌     |
-| 6. Implementasi fungsi login (account.createEmailSession) dan logout (account.deleteSession)   | ❌     |
-| 7. Buat logic routing: setelah login, periksa role dari profiles & arahkan ke halaman sesuai  | ❌     |
+| 1. Setup project Flutter dengan struktur folder & dependensi (appwrite)                       | ✅     |
+| 2. Setup Appwrite: buat semua collections (profiles, products, orders, order_items)            | ✅     |
+| 3. Buat Unique Index pada field username di collection profiles                                | ✅     |
+| 4. Implementasi fungsi registrasi (account.create) dengan input (email, password, nama)       | ✅     |
+| 5. Buat logic untuk membuat dokumen di profiles (dengan username, phone_number, role) setelah registrasi | ✅     |
+| 6. Implementasi fungsi login (account.createEmailPasswordSession) dan logout (account.deleteSession)   | ✅     |
+| 7. Buat logic routing: setelah login, periksa role dari profiles & arahkan ke halaman sesuai  | ✅     |
 
 **Total task = 7**  
-**Task selesai = 0**  
-**Persentase progress = (0/7) × 100% = 0%**
+**Task selesai = 7**  
+**Persentase progress = (7/7) × 100% = 100%**
 
 ---
 
