@@ -97,6 +97,7 @@ class DatabaseService {
     );
   }
 
+// Fungsi untuk update produk
   Future<models.Document> updateProduct({
     required String documentId,
     required String name,
@@ -117,7 +118,7 @@ class DatabaseService {
       'price': price,
       'stock': stock,
     };
-
+// Hanya tambahkan imageUrl ke data jika ada gambar baru
     if (imageUrl != null) {
       data['imageUrl'] = imageUrl;
     }
@@ -130,16 +131,27 @@ class DatabaseService {
     );
   }
 
-  Future<void> deleteProduct(String documentId, String imageUrl) async {
-    final fileId = Uri.parse(imageUrl).pathSegments.last;
-    await storage.deleteFile(
-        bucketId: AppwriteConstants.productsBucketId, fileId: fileId); // DIGANTI
-    await databases.deleteDocument(
-      databaseId: AppwriteConstants.databaseId,
-      collectionId: AppwriteConstants.productsCollectionId, // DIGANTI
-      documentId: documentId,
-    );
+Future<void> deleteProduct(String documentId, String? imageUrl) async { // Ubah tipe menjadi String?
+  // 1. Hapus gambar dari Storage HANYA JIKA imageUrl ada dan tidak kosong
+  if (imageUrl != null && imageUrl.isNotEmpty) {
+    try {
+      // Ekstrak file ID dari URL
+      final fileId = Uri.parse(imageUrl).pathSegments.last;
+      await storage.deleteFile(
+          bucketId: AppwriteConstants.productsBucketId, fileId: fileId);
+    } catch (e) {
+      // Abaikan error jika file tidak ditemukan di storage, mungkin sudah dihapus
+      print("Gagal menghapus file dari storage (mungkin sudah tidak ada): $e");
+    }
   }
+  
+  // 2. Selalu hapus dokumen dari Database
+  await databases.deleteDocument(
+    databaseId: AppwriteConstants.databaseId,
+    collectionId: AppwriteConstants.productsCollectionId,
+    documentId: documentId,
+  );
+}
 
   // === FUNGSI MANAJEMEN PESANAN ===
   

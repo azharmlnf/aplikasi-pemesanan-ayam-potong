@@ -24,11 +24,11 @@
 
 | Task                                                                                         | Status |
 | -------------------------------------------------------------------------------------------- | ------ |
-| 1. Desain UI Dashboard Admin dengan navigasi ke "Produk" dan "Pesanan"                       | ❌     |
+| 1. Desain UI Dashboard Admin dengan navigasi ke "Produk" dan "Pesanan"                       | ✅     |
 | 2. Buat halaman daftar produk untuk Admin dengan tombol Aksi (Edit, Hapus)                  |    ✅  |
-| 3. Buat Form untuk menambah & mengedit produk (nama, deskripsi, harga, stok)                | ❌     |
+| 3. Buat Form untuk menambah & mengedit produk (nama, deskripsi, harga, stok)                | ✅     |
 | 4. Implementasi fungsi upload gambar ke Appwrite Storage saat menambah produk                | ❌     |
-| 5. Implementasi logic Create, Update, dan Delete untuk dokumen di products                   | ❌     |
+| 5. Implementasi logic Create, Update, dan Delete untuk dokumen di products                   | ✅     |
 
 **Total task = 5**  
 **Task selesai = 0**  
