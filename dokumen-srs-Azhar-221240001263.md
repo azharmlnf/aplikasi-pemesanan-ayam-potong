@@ -133,9 +133,12 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 | ---------- | -------- | ------------------- |
 | \$id       | string   | ID pesanan          |
 | customerId | string   | FK ke profiles.\$id |
+| description       | string | deskripsi pesanan    |
+| pieces       | enum | (1,2,4,6,8) ayam dipotong menjadi berapa bagian    |
 | totalPrice | double   | Total harga pesanan |
 | status     | string   | pending / processed |
 | orderDate  | datetime | Timestamp ISO8601   |
+
 
 ### 📁 Koleksi: `order_items`
 
