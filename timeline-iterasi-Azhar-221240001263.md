@@ -24,15 +24,14 @@
 
 | Task                                                                                         | Status |
 | -------------------------------------------------------------------------------------------- | ------ |
-| 1. Desain UI Dashboard Admin dengan navigasi ke "Produk" dan "Pesanan"                       | ✅     |
-| 2. Buat halaman daftar produk untuk Admin dengan tombol Aksi (Edit, Hapus)                  |    ✅  |
-| 3. Buat Form untuk menambah & mengedit produk (nama, deskripsi, harga, stok)                | ✅     |
-| 4. Implementasi fungsi upload gambar ke Appwrite Storage saat menambah produk                | ❌     |
-| 5. Implementasi logic Create, Update, dan Delete untuk dokumen di products                   | ✅     |
+| 1. Buat halaman daftar produk untuk Admin dengan tombol Aksi (Edit, Hapus)                  |    ✅  |
+| 2. Buat Form untuk menambah & mengedit produk (nama, deskripsi, harga, stok)                | ✅     |
+| 3. Implementasi fungsi upload gambar ke Appwrite Storage saat menambah produk                | ❌     |
+| 4. Implementasi logic Create, Update, dan Delete untuk dokumen di products                   | ✅     |
 
-**Total task = 5**  
-**Task selesai = 0**  
-**Persentase progress = (0/5) × 100% = 0%**
+**Total task = 4**  
+**Task selesai = 3**  
+**Persentase progress = (3/4) × 100% = 75%**
 
 ---
 
@@ -40,16 +39,15 @@
 
 | Task                                                                                         | Status |
 | -------------------------------------------------------------------------------------------- | ------ |
-| 1. Desain UI halaman utama Customer untuk menampilkan daftar produk                          | ❌     |
-| 2. Buat service untuk mengambil (fetch) data dari collection products                        | ❌     |
-| 3. Tampilkan daftar produk di UI dengan gambar, nama, dan harga                             | ❌     |
-| 4. Implementasi state management untuk keranjang belanja (local state)                      | ❌     |
-| 5. Tambahkan fungsionalitas "Tambah ke Keranjang" & "Ubah Kuantitas"                        | ❌     |
-| 6. Buat halaman Keranjang Belanja untuk menampilkan ringkasan & total harga                 | ❌     |
+| 1. Buat service untuk mengambil (fetch) data dari collection products                        | ❌     |
+| 2. Tampilkan daftar produk di UI dengan gambar, nama, dan harga                             | ❌     |
+| 3. Implementasi state management untuk keranjang belanja (local state)                      | ❌     |
+| 4. Tambahkan fungsionalitas "Tambah ke Keranjang" & "Ubah Kuantitas"                        | ❌     |
+| 5. Buat halaman Keranjang Belanja untuk menampilkan ringkasan & total harga                 | ❌     |
 
-**Total task = 6**  
+**Total task = 5**  
 **Task selesai = 0**  
-**Persentase progress = (0/6) × 100% = 0%**
+**Persentase progress = (0/5) × 100% = 0%**
 
 ---
 
