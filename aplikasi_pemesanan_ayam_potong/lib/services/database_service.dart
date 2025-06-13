@@ -47,7 +47,25 @@ class DatabaseService {
       return null;
     }
   }
+//menampilkan user yang login
+ Future<models.Document?> getProfile(String userId) async {
+    try {
+      return await databases.getDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.profilesCollectionId,
+        documentId: userId,
+      );
+    } on AppwriteException catch (e) {
+      // Jika profil tidak ditemukan, kembalikan null
+      if (e.code == 404) {
+        return null;
+      }
+      print('Gagal mendapatkan profil: ${e.message}');
+      rethrow;
+    }
+  }
 
+//menampilkan product dari database
   Future<List<models.Document>> getProducts() async {
     final result = await databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,

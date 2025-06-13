@@ -24,14 +24,15 @@
 
 | Task                                                                                         | Status |
 | -------------------------------------------------------------------------------------------- | ------ |
-| 1. Buat halaman daftar produk untuk Admin dengan tombol Aksi (Edit, Hapus)                  |    ✅  |
-| 2. Buat Form untuk menambah & mengedit produk (nama, deskripsi, harga, stok)                | ✅     |
-| 3. Implementasi fungsi upload gambar ke Appwrite Storage saat menambah produk                | ❌     |
-| 4. Implementasi logic Create, Update, dan Delete untuk dokumen di products                   | ✅     |
+| 1. Buat halaman profile untuk Admin dan customer dengan tombol logout                 |    ✅  |
+| 2. Buat halaman daftar produk untuk Admin dengan tombol Aksi (Edit, Hapus)                 |    ✅  |
+| 3. Buat Form untuk menambah & mengedit produk (nama, deskripsi, harga, stok)                | ✅     |
+| 4. Implementasi fungsi upload gambar ke Appwrite Storage saat menambah produk                | ❌     |
+| 5. Implementasi logic Create, Update, dan Delete untuk dokumen di products                   | ✅     |
 
-**Total task = 4**  
-**Task selesai = 3**  
-**Persentase progress = (3/4) × 100% = 75%**
+**Total task = 5**  
+**Task selesai = 4**  
+**Persentase progress = (4/5) × 100% = 80%**
 
 ---
 

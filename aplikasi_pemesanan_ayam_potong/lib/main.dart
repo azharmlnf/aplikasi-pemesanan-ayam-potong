@@ -87,14 +87,14 @@ class _MyAppState extends State<MyApp> {
                 }
                 
                 // Arahkan ke dashboard yang sesuai berdasarkan role
-                if (roleSnapshot.data == 'admin') {
-                  return AdminDashboardPage(
+if (roleSnapshot.data == 'admin') {
+                  return AdminDashboardPage(authService: authService, databaseService: databaseService);
+                } else {
+                  // Kirim juga databaseService ke Customer
+                  return CustomerDashboardPage(
                     authService: authService,
                     databaseService: databaseService,
                   );
-                } else {
-                  // Default ke dashboard customer jika bukan admin atau role tidak ditemukan
-                  return CustomerDashboardPage(authService: authService);
                 }
               },
             );
@@ -112,7 +112,11 @@ class _MyAppState extends State<MyApp> {
               authService: authService,
               databaseService: databaseService,
             ),
-        '/customer-dashboard': (context) => CustomerDashboardPage(authService: authService),
+  // Kirim juga databaseService ke Customer di routes
+        '/customer-dashboard': (context) => CustomerDashboardPage(
+              authService: authService,
+              databaseService: databaseService,
+            ),
       },
     );
   }

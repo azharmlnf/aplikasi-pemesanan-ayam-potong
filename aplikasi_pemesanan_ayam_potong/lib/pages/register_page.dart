@@ -19,6 +19,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _phoneController = TextEditingController();
   bool _isLoading = false;
 
+
+
    void _register() async {
     setState(() => _isLoading = true);
     try {
