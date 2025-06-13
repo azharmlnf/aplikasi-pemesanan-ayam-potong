@@ -200,6 +200,8 @@ erDiagram
     orders {
         string orderId PK "Appwrite Doc $id"
         string customerId FK "Relasi ke profiles.userId"
+        string description 
+        enum pieces  "(1,2,4,6,8) ayam dipotong menjadi"
         double totalPrice
         string status
         datetime orderDate
