@@ -1,6 +1,6 @@
 ## 📦 Dokumen Software Requirement Specification (SRS)
 
-### Aplikasi Pemesanan Es Batu 'Pesan Es'
+### Aplikasi Pemesanan Ayam Potong 
 
 **Versi:** 0.2
 **Tanggal:** 23 Mei 2024
@@ -12,13 +12,13 @@
 
 ### 1.1 Tujuan Dokumen
 
-Dokumen ini mendefinisikan kebutuhan perangkat lunak untuk MVP aplikasi **Pesan Es**, yang memungkinkan customer memesan es batu dan admin mengelola produk serta pesanan.
+Dokumen ini mendefinisikan kebutuhan perangkat lunak untuk MVP aplikasi **Pesan Ayam Potong**, yang memungkinkan customer memesan Ayam Potong dan admin mengelola produk serta pesanan.
 
 ### 1.2 Ruang Lingkup Produk
 
 Aplikasi mobile (Flutter) yang memungkinkan:
 
-* Customer: Registrasi, login, lihat produk, tambah ke keranjang, dan pesan es.
+* Customer: Registrasi, login, lihat produk, tambah ke keranjang, dan Pesan Ayam Potong.
 * Admin: CRUD produk, lihat dan ubah status pesanan.
 
 **Catatan:** Tidak mencakup pembayaran online atau pengiriman.
@@ -47,7 +47,7 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 ### 2.3 Karakteristik Pengguna
 
 * **Customer:** Warung, kafe, EO yang butuh pasokan es
-* **Admin:** Pengelola toko es batu
+* **Admin:** Pengelola toko Ayam Potong
 
 ### 2.4 Batasan
 
@@ -220,4 +220,4 @@ erDiagram
 
 ## 8. Penutup
 
-Dokumen ini menjadi acuan utama pengembangan aplikasi 'Pesan Es' versi MVP. Dapat diperbarui jika ada perubahan kebutuhan dan pengembangan lanjutan.
+Dokumen ini menjadi acuan utama pengembangan aplikasi 'Pesan Ayam Potong' versi MVP. Dapat diperbarui jika ada perubahan kebutuhan dan pengembangan lanjutan.

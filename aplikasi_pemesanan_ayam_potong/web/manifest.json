@@ -1,6 +1,6 @@
 {
-    "name": "app_pemesanan_es_batu",
-    "short_name": "app_pemesanan_es_batu",
+    "name": "app_pemesanan_ayam_potong",
+    "short_name": "app_pemesanan_ayam_potong",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
 import '../../services/database_service.dart';
 // Nantinya kita akan buat file ini
-// import 'product_form_page.dart';
+import 'product_form_page.dart';
 
 class ProductManagementPage extends StatefulWidget {
   final DatabaseService databaseService;
@@ -29,22 +29,22 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
     });
   }
 
-  // Fungsi untuk navigasi ke form (akan dibuat nanti)
-  // void _navigateAndRefresh(BuildContext context, {models.Document? product}) async {
-  //   final result = await Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => ProductFormPage(
-  //         databaseService: widget.databaseService,
-  //         product: product,
-  //       ),
-  //     ),
-  //   );
+  //Fungsi untuk navigasi ke form (akan dibuat nanti)
+  void _navigateAndRefresh(BuildContext context, {models.Document? product}) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductFormPage(
+          databaseService: widget.databaseService,
+          // product: product, // Untuk fitur edit nanti
+        ),
+      ),
+    );
 
-  //   if (result == true) {
-  //     _refreshProducts();
-  //   }
-  // }
+    if (result == true) {
+      _refreshProducts();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +118,7 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Navigasi untuk tambah
-          // _navigateAndRefresh(context);
+          _navigateAndRefresh(context);
         },
         child: const Icon(Icons.add),
         tooltip: 'Tambah Produk',
