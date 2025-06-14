@@ -90,3 +90,17 @@ erDiagram
     products ||--|{ product_images : "has"
 ```
 ---
+ ## Alur Simpan Gambar
+
+```mermaid
+flowchart TD
+    A["User: Input Gambar via Form Produk"] --> B["Flutter: Ambil Gambar dari Galeri/Kamera"]
+    B --> C["Flutter: Upload ke Appwrite Storage"]
+    C --> D["Appwrite: Simpan File ke Bucket 'product_images'"]
+    D --> E["Flutter: Dapatkan fileId dari Response"]
+    E --> F["Flutter: Buat imageUrl dari fileId"]
+    F --> G["Flutter: Kirim Data Produk + imageUrl ke Database"]
+    G --> H["Appwrite: Simpan Dokumen Produk"]
+    H --> I["Customer: Buka Katalog Produk"]
+    I --> J["Flutter: Ambil Data Produk dari Appwrite"]
+    J --> K["Flutter: Tampilkan Gambar via Image.network()"]
