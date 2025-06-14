@@ -1,8 +1,6 @@
 // lib/pages/admin/edit_product_page.dart
 
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:appwrite/models.dart' as models;
 import '../../services/database_service.dart';
 
@@ -27,8 +25,7 @@ class _EditProductPageState extends State<EditProductPage> {
   final _priceController = TextEditingController();
   final _stockController = TextEditingController();
 
-  File? _selectedImage;
-  String? _existingImageUrl;
+
   bool _isLoading = false;
 
   @override
@@ -40,16 +37,9 @@ class _EditProductPageState extends State<EditProductPage> {
     _descriptionController.text = productData['description'] ?? '';
     _priceController.text = (productData['price'] ?? 0.0).toString();
     _stockController.text = (productData['stock'] ?? 0).toString();
-    _existingImageUrl = productData['imageUrl'] as String?;
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() => _selectedImage = File(pickedFile.path));
-    }
-  }
+
 
   Future<void> _updateProduct() async {
     if (!_formKey.currentState!.validate()) return;
@@ -64,7 +54,6 @@ class _EditProductPageState extends State<EditProductPage> {
         description: _descriptionController.text,
         price: double.parse(_priceController.text),
         stock: int.parse(_stockController.text),
-        imageFile: _selectedImage,
       );
 
       if (mounted) {
@@ -82,18 +71,7 @@ class _EditProductPageState extends State<EditProductPage> {
     }
   }
 
-  Widget _buildImageWidget() {
-    // Prioritaskan gambar baru yang dipilih
-    if (_selectedImage != null) {
-      return Image.file(_selectedImage!, fit: BoxFit.cover);
-    }
-    // Jika tidak ada gambar baru, tampilkan gambar lama
-    if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) {
-      return Image.network(_existingImageUrl!, fit: BoxFit.cover);
-    }
-    // Jika tidak ada keduanya, tampilkan placeholder
-    return const Center(child: Icon(Icons.inventory_2, size: 50, color: Colors.grey));
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -106,14 +84,7 @@ class _EditProductPageState extends State<EditProductPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 200,
-                  decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8.0)),
-                  child: _buildImageWidget(),
-                ),
-              ),
+  
               const SizedBox(height: 20),
               TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Nama Produk'), validator: (v) => v!.isEmpty ? 'Wajib diisi' : null),
               TextFormField(controller: _descriptionController, decoration: const InputDecoration(labelText: 'Deskripsi'), validator: (v) => v!.isEmpty ? 'Wajib diisi' : null),

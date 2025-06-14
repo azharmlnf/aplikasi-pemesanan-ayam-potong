@@ -7,8 +7,10 @@ class DatabaseService {
   final Databases databases;
   final Storage storage; // Tambahkan Storage
 
-  DatabaseService({required this.databases, required this.storage}); // Update constructor
-
+  DatabaseService({
+    required this.databases,
+    required this.storage,
+  }); // Update constructor
 
   Future<models.Document> createProfile({
     required String userId,
@@ -33,6 +35,7 @@ class DatabaseService {
       ],
     );
   }
+
   // Fungsi untuk mendapatkan role pengguna dari collection profiles
   Future<String?> getUserRole(String userId) async {
     try {
@@ -47,8 +50,9 @@ class DatabaseService {
       return null;
     }
   }
-//menampilkan user yang login
- Future<models.Document?> getProfile(String userId) async {
+
+  //menampilkan user yang login
+  Future<models.Document?> getProfile(String userId) async {
     try {
       return await databases.getDocument(
         databaseId: AppwriteConstants.databaseId,
@@ -65,7 +69,7 @@ class DatabaseService {
     }
   }
 
-//menampilkan product dari database
+  //menampilkan product dari database
   Future<List<models.Document>> getProducts() async {
     final result = await databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
@@ -78,92 +82,77 @@ class DatabaseService {
     final file = await storage.createFile(
       bucketId: AppwriteConstants.productsBucketId, // DIGANTI
       fileId: ID.unique(),
-      file: InputFile.fromPath(path: imageFile.path, filename: imageFile.path.split('/').last),
+      file: InputFile.fromPath(
+        path: imageFile.path,
+        filename: imageFile.path.split('/').last,
+      ),
     );
     return file.$id;
   }
 
-  String getImageUrl(String fileId) { // Disederhanakan
-    return storage.getFileView(
-      bucketId: AppwriteConstants.productsBucketId, // DIGANTI
-      fileId: fileId,
-    ).toString();
+  String getImageUrl(String fileId) {
+    // Disederhanakan
+    return storage
+        .getFileView(
+          bucketId: AppwriteConstants.productsBucketId, // DIGANTI
+          fileId: fileId,
+        )
+        .toString();
   }
 
+  // Fungsi CREATE yang diperbarui
   Future<models.Document> createProduct({
     required String name,
     required String description,
     required double price,
     required int stock,
-    required File imageFile,
   }) async {
-    final imageId = await _uploadImage(imageFile);
-    final imageUrl = getImageUrl(imageId);
-
+    // Tidak ada lagi logika gambar di sini
     return databases.createDocument(
       databaseId: AppwriteConstants.databaseId,
-      collectionId: AppwriteConstants.productsCollectionId, // DIGANTI
+      collectionId: AppwriteConstants.productsCollectionId,
       documentId: ID.unique(),
       data: {
         'name': name,
         'description': description,
         'price': price,
         'stock': stock,
-        'imageUrl': imageUrl,
       },
-      permissions: [Permission.read(Role.any())],
+      // Anda bisa tetap memberikan izin level dokumen jika mau
+      permissions: [
+        Permission.update(Role.team(AppwriteConstants.adminTeamId)),
+        Permission.delete(Role.team(AppwriteConstants.adminTeamId)),
+      ],
     );
   }
 
-// Fungsi untuk update produk
+  // Fungsi untuk update produk
   Future<models.Document> updateProduct({
-    required String documentId,
-    required String name,
-    required String description,
-    required double price,
-    required int stock,
-    File? imageFile,
-  }) async {
-    String? imageUrl;
-    if (imageFile != null) {
-      final imageId = await _uploadImage(imageFile);
-      imageUrl = getImageUrl(imageId);
-    }
+  required String documentId,
+  required String name,
+  required String description,
+  required double price,
+  required int stock,
+}) async {
+  // Tidak ada lagi logika gambar di sini
+  final data = {
+    'name': name,
+    'description': description,
+    'price': price,
+    'stock': stock,
+  };
 
-    final data = {
-      'name': name,
-      'description': description,
-      'price': price,
-      'stock': stock,
-    };
-// Hanya tambahkan imageUrl ke data jika ada gambar baru
-    if (imageUrl != null) {
-      data['imageUrl'] = imageUrl;
-    }
+  return databases.updateDocument(
+    databaseId: AppwriteConstants.databaseId,
+    collectionId: AppwriteConstants.productsCollectionId,
+    documentId: documentId,
+    data: data,
+  );
+}
 
-    return databases.updateDocument(
-      databaseId: AppwriteConstants.databaseId,
-      collectionId: AppwriteConstants.productsCollectionId, // DIGANTI
-      documentId: documentId,
-      data: data,
-    );
-  }
-
-Future<void> deleteProduct(String documentId, String? imageUrl) async { // Ubah tipe menjadi String?
-  // 1. Hapus gambar dari Storage HANYA JIKA imageUrl ada dan tidak kosong
-  if (imageUrl != null && imageUrl.isNotEmpty) {
-    try {
-      // Ekstrak file ID dari URL
-      final fileId = Uri.parse(imageUrl).pathSegments.last;
-      await storage.deleteFile(
-          bucketId: AppwriteConstants.productsBucketId, fileId: fileId);
-    } catch (e) {
-      // Abaikan error jika file tidak ditemukan di storage, mungkin sudah dihapus
-      print("Gagal menghapus file dari storage (mungkin sudah tidak ada): $e");
-    }
-  }
-  
-  // 2. Selalu hapus dokumen dari Database
+  Future<void> deleteProduct(String documentId) async {
+  // TODO: Hapus semua gambar terkait dari product_images dan Storage terlebih dahulu
+  // Untuk sekarang, kita hanya hapus produknya
   await databases.deleteDocument(
     databaseId: AppwriteConstants.databaseId,
     collectionId: AppwriteConstants.productsCollectionId,
@@ -172,19 +161,20 @@ Future<void> deleteProduct(String documentId, String? imageUrl) async { // Ubah 
 }
 
   // === FUNGSI MANAJEMEN PESANAN ===
-  
+
   Future<List<models.Document>> getOrders() async {
     final result = await databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.ordersCollectionId, // DIGANTI
-      queries: [
-        Query.orderDesc('orderDate'),
-      ],
+      queries: [Query.orderDesc('orderDate')],
     );
     return result.documents;
   }
 
-  Future<models.Document> updateOrderStatus(String orderId, String newStatus) async {
+  Future<models.Document> updateOrderStatus(
+    String orderId,
+    String newStatus,
+  ) async {
     return databases.updateDocument(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.ordersCollectionId, // DIGANTI
@@ -193,4 +183,3 @@ Future<void> deleteProduct(String documentId, String? imageUrl) async { // Ubah 
     );
   }
 }
-

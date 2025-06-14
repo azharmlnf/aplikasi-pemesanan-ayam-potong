@@ -1,8 +1,6 @@
 // lib/pages/admin/create_product_page.dart
 
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../services/database_service.dart';
 
 class CreateProductPage extends StatefulWidget {
@@ -21,35 +19,23 @@ class _CreateProductPageState extends State<CreateProductPage> {
   final _priceController = TextEditingController();
   final _stockController = TextEditingController();
 
-  File? _selectedImage;
   bool _isLoading = false;
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() => _selectedImage = File(pickedFile.path));
-    }
-  }
 
-  Future<void> _createProduct() async {
+
+Future<void> _createProduct() async {
     if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gambar produk wajib dipilih.')));
-      return;
-    }
-
+    // Hapus validasi gambar
+    
     setState(() => _isLoading = true);
 
     try {
+      // Panggil fungsi tanpa imageFile
       await widget.databaseService.createProduct(
         name: _nameController.text,
         description: _descriptionController.text,
         price: double.parse(_priceController.text),
         stock: int.parse(_stockController.text),
-        imageFile: _selectedImage!,
       );
 
       if (mounted) {
@@ -78,24 +64,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 200,
-                  decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8.0)),
-                  child: _selectedImage != null
-                      ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                      : const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
-                              Text('Ketuk untuk memilih gambar'),
-                            ],
-                          ),
-                        ),
-                ),
-              ),
+              
               const SizedBox(height: 20),
               TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Nama Produk'), validator: (v) => v!.isEmpty ? 'Wajib diisi' : null),
               TextFormField(controller: _descriptionController, decoration: const InputDecoration(labelText: 'Deskripsi'), validator: (v) => v!.isEmpty ? 'Wajib diisi' : null),

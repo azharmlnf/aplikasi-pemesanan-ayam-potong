@@ -24,36 +24,49 @@ class AdminDashboardPage extends StatefulWidget {
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   int _selectedIndex = 0;
+  
+  // --- PERUBAHAN STATE ---
+  bool _isLoadingProfile = true; // State baru untuk menandakan sedang loading
   models.Document? _userProfile;
+  // ---
 
   late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
-
-    // Inisialisasi daftar halaman
+    // Inisialisasi halaman dengan data awal (kosong/placeholder)
     _pages = [
-      ProductManagementPage(databaseService: widget.databaseService),
+      ProductManagementPage(databaseService: widget.databaseService, userRole: ''), // Role awal kosong
       OrderManagementPage(databaseService: widget.databaseService),
-      ProfilePage(authService: widget.authService, userProfile: _userProfile), // Awalnya null
+      ProfilePage(authService: widget.authService, userProfile: null),
     ];
+    // Panggil fungsi untuk memuat data
+    _loadUserProfile();
   }
 
-  // Fungsi untuk mengambil data profil
   Future<void> _loadUserProfile() async {
     final user = await widget.authService.getCurrentUser();
     if (user != null) {
       final profile = await widget.databaseService.getProfile(user.$id);
-      setState(() {
-        _userProfile = profile;
-        // Update halaman profil di dalam list dengan data yang sudah didapat
-        _pages[2] = ProfilePage(
-          authService: widget.authService,
-          userProfile: _userProfile,
-        );
-      });
+      
+      // Setelah data didapat, panggil setState
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+          // Update halaman yang membutuhkan data profil
+          _pages[0] = ProductManagementPage(databaseService: widget.databaseService, userRole: _userProfile?.data['role'] ?? 'customer');
+          _pages[2] = ProfilePage(authService: widget.authService, userProfile: _userProfile);
+          _isLoadingProfile = false; // Set loading menjadi false setelah selesai
+        });
+      }
+    } else {
+      // Handle jika user tidak ditemukan (seharusnya tidak terjadi di halaman ini)
+      if (mounted) {
+        setState(() {
+          _isLoadingProfile = false;
+        });
+      }
     }
   }
 
@@ -63,11 +76,36 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     });
   }
 
-  // Judul AppBar yang dinamis
   final List<String> _pageTitles = ['Manajemen Produk', 'Manajemen Pesanan', 'Profil Saya'];
 
   @override
   Widget build(BuildContext context) {
+    // --- LOGIKA UTAMA ADA DI SINI ---
+
+    // 1. Jika masih loading, tampilkan CircularProgressIndicator
+    if (_isLoadingProfile) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // 2. Tentukan apakah user adalah admin SETELAH loading selesai
+    final bool isUserAdmin = _userProfile?.data['role'] == 'admin';
+
+    // 3. Jika bukan admin, tampilkan pesan akses ditolak
+    if (!isUserAdmin) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Akses Ditolak')),
+        body: const Center(
+          child: Text(
+            'Akses Ditolak. Anda bukan admin.',
+            style: TextStyle(fontSize: 18, color: Colors.red),
+          ),
+        ),
+      );
+    }
+
+    // 4. Jika semua pemeriksaan lolos (loading selesai DAN user adalah admin), tampilkan dashboard
     return Scaffold(
       appBar: AppBar(
         title: Text(_pageTitles[_selectedIndex]),

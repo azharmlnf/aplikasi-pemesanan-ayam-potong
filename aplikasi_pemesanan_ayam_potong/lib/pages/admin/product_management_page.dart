@@ -5,11 +5,16 @@ import 'package:appwrite/models.dart' as models;
 import '../../services/database_service.dart';
 // Nantinya kita akan buat file ini
 import 'create_product_page.dart'; // Import halaman create
-import 'edit_product_page.dart';   // Import halaman edit
+import 'edit_product_page.dart'; // Import halaman edit
+
 class ProductManagementPage extends StatefulWidget {
   final DatabaseService databaseService;
-  const ProductManagementPage({Key? key, required this.databaseService})
-    : super(key: key);
+  final String userRole; // <-- TAMBAHKAN INI
+  const ProductManagementPage({
+    Key? key,
+    required this.databaseService,
+    required this.userRole, // <-- TAMBAHKAN INI
+  }) : super(key: key);
 
   @override
   _ProductManagementPageState createState() => _ProductManagementPageState();
@@ -29,16 +34,16 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
       _productsFuture = widget.databaseService.getProducts();
     });
   }
-  
 
   //Fungsi untuk navigasi ke form (akan dibuat nanti)
-  
-// Fungsi navigasi untuk TAMBAH produk
+
+  // Fungsi navigasi untuk TAMBAH produk
   void _navigateToAddPage() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateProductPage(databaseService: widget.databaseService),
+        builder: (context) =>
+            CreateProductPage(databaseService: widget.databaseService),
       ),
     );
     if (result == true) _refreshProducts();
@@ -60,6 +65,8 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool canModify =
+        widget.userRole == 'admin'; // Cek apakah boleh modifikasi
     return Scaffold(
       body: FutureBuilder<List<models.Document>>(
         future: _productsFuture,
@@ -82,25 +89,12 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
               final productData =
                   product.data; // Simpan data ke variabel agar lebih rapi
 
-              // Ambil data dengan memberikan nilai default jika null
-              final imageUrl =
-                  productData['imageUrl']
-                      as String?; // Ambil sebagai String yg bisa null
               final name =
                   productData['name'] as String? ?? 'Produk Tanpa Nama';
               final price = productData['price'] ?? 0.0;
               final stock = productData['stock'] ?? 0;
 
               return ListTile(
-                leading: CircleAvatar(
-                  // Cek jika imageUrl ada dan tidak kosong, jika tidak tampilkan ikon
-                  backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
-                      ? NetworkImage(imageUrl)
-                      : null,
-                  child: (imageUrl == null || imageUrl.isEmpty)
-                      ? const Icon(Icons.inventory_2)
-                      : null,
-                ),
                 title: Text(name),
                 subtitle: Text('Rp $price - Stok: $stock'),
                 trailing: Row(
@@ -110,7 +104,8 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
                       icon: const Icon(Icons.edit, color: Colors.blue),
                       onPressed: () {
                         // Navigasi untuk edit
-           _navigateToEditPage(product);                      },
+                        _navigateToEditPage(product);
+                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
@@ -152,8 +147,10 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
                         // Hanya jalankan delete jika user menekan tombol 'Hapus'
                         if (shouldDelete == true) {
                           try {
-        // Panggil fungsi deleteProduct dengan imageUrl yang mungkin null
-        await widget.databaseService.deleteProduct(product.$id, imageUrl); 
+                            // Panggil fungsi deleteProduct dengan imageUrl yang mungkin null
+                            await widget.databaseService.deleteProduct(
+                              product.$id,
+                            );
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Produk berhasil dihapus!'),
@@ -179,13 +176,13 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigasi untuk tambah
-          _navigateToAddPage();
-        },
-        child: const Icon(Icons.add),
-        tooltip: 'Tambah Produk',
+      floatingActionButton: Visibility(
+        visible: canModify,
+        child: FloatingActionButton(
+          onPressed: () => _navigateToAddPage(),
+          child: const Icon(Icons.add),
+          tooltip: 'Tambah Produk',
+        ),
       ),
     );
   }
