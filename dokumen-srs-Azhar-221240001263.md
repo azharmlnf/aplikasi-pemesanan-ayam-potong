@@ -1,6 +1,6 @@
-## 📦 Dokumen Software Requirement Specification (SRS)
+## 🏦 Dokumen Software Requirement Specification (SRS)
 
-### Aplikasi Pemesanan Ayam Potong 
+### Aplikasi Pemesanan Ayam Potong
 
 **Versi:** 0.2
 **Tanggal:** 23 Mei 2024
@@ -46,7 +46,7 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 
 ### 2.3 Karakteristik Pengguna
 
-* **Customer:** Warung, kafe, EO yang butuh pasokan es
+* **Customer:** Warung, kafe, EO yang butuh pasokan ayam potong
 * **Admin:** Pengelola toko Ayam Potong
 
 ### 2.4 Batasan
@@ -111,10 +111,10 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 | Field         | Type   | Keterangan                           |
 | ------------- | ------ | ------------------------------------ |
 | \$id          | string | Sama dengan users.\$id               |
-| name | string | Nama                            |
+| name          | string | Nama                                 |
 | username      | string | Unik untuk tampilan display          |
 | phone\_number | string | Nomor HP                             |
-| role          | enum | customer / admin (default: customer) |
+| role          | enum   | customer / admin (default: customer) |
 
 ### 📁 Koleksi: `products`
 
@@ -129,16 +129,15 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 
 ### 📁 Koleksi: `orders`
 
-| Field      | Type     | Keterangan          |
-| ---------- | -------- | ------------------- |
-| \$id       | string   | ID pesanan          |
-| customerId | string   | FK ke profiles.\$id |
-| description       | string | deskripsi pesanan    |
-| pieces       | enum | (1,2,4,6,8) ayam dipotong menjadi berapa bagian    |
-| totalPrice | double   | Total harga pesanan |
-| status     | string   | pending / processed |
-| orderDate  | datetime | Timestamp ISO8601   |
-
+| Field       | Type     | Keterangan                                      |
+| ----------- | -------- | ----------------------------------------------- |
+| \$id        | string   | ID pesanan                                      |
+| customerId  | string   | FK ke profiles.\$id                             |
+| description | string   | deskripsi pesanan                               |
+| pieces      | enum     | (1,2,4,6,8) ayam dipotong menjadi berapa bagian |
+| totalPrice  | double   | Total harga pesanan                             |
+| status      | string   | pending / processed                             |
+| orderDate   | datetime | Timestamp ISO8601                               |
 
 ### 📁 Koleksi: `order_items`
 
@@ -172,8 +171,38 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 * Minggu 6: Testing, UI polishing
 
 ---
+# 7 Diagram 
+ ## 7.1 Diagram Alur Aplikasi
 
-## 7. Diagram ER (Relasi Database)
+```mermaid
+flowchart TD
+    Start([Mulai])
+    Login{Login/Register}
+
+    subgraph CustomerFlow[Customer Flow]
+        C1[Lihat Daftar Produk]
+        C2[Tambah ke Keranjang]
+        C3[Checkout]
+        C4[Lihat Riwayat Pesanan]
+    end
+
+    subgraph AdminFlow[Admin Flow]
+        A1[Lihat Daftar Pesanan]
+        A2[Lihat Detail Pesanan]
+        A3[Ubah Status Pesanan]
+        A4[Kelola Produk CRUD]
+    end
+
+    Start --> Login
+    Login -->|Sebagai Customer| C1
+    C1 --> C2 --> C3 --> C4
+
+    Login -->|Sebagai Admin| A1
+    A1 --> A2 --> A3
+    A1 --> A4
+```
+---
+ ## 7.2 Diagram Relasi Database
 
 ```mermaid
 erDiagram
@@ -220,6 +249,10 @@ erDiagram
     orders ||--|{ order_items : "contains"
     products ||--o{ order_items : "is part of"
 ```
+
+---
+
+
 
 ---
 
