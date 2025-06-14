@@ -249,13 +249,7 @@ erDiagram
     orders ||--|{ order_items : "contains"
     products ||--o{ order_items : "is part of"
 ```
-
 ---
-
-
-
----
-
 ## 8. Penutup
 
 Dokumen ini menjadi acuan utama pengembangan aplikasi 'Pesan Ayam Potong' versi MVP. Dapat diperbarui jika ada perubahan kebutuhan dan pengembangan lanjutan.
