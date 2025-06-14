@@ -124,8 +124,15 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 | name        | string  | Nama produk       |
 | description | string  | Deskripsi produk  |
 | price       | double  | Harga per unit    |
-| imageUrl    | string  | URL gambar produk |
 | stock       | integer | Stok tersedia     |
+
+### 📁 Koleksi: `product_images`
+
+| Field       | Type    | Keterangan        |
+| ----------- | ------- | ----------------- |
+| productId  | string   | FK ke products.\$id                             |
+| imageUrl    | string  | URL gambar produk |
+| fileId       | string | ID file dari Appwrite Storage (untuk memudahkan penghapusan).  |
 
 ### 📁 Koleksi: `orders`
 
@@ -209,6 +216,7 @@ erDiagram
     users {
         string userId PK "Appwrite Auth $id"
         string email
+        string name
     }
 
     profiles {
@@ -216,14 +224,22 @@ erDiagram
         string name
         string username "Unique Index"
         string phone_number
-        enum role "admin  atau customer"
+        enum role "admin atau customer"
     }
 
     products {
         string productId PK "Appwrite Doc $id"
         string name
+        string description
         double price
+        int stock
+    }
+
+    product_images {
+        string imageId PK
+        string productId FK "Relasi ke products.productId"
         string imageUrl
+        string fileId
     }
 
     orders {
@@ -241,13 +257,14 @@ erDiagram
         string orderId FK "Relasi ke orders.orderId"
         string productId FK "Relasi ke products.productId"
         int quantity
-        double priceAtOrder "Snapshot harga"
+        double priceAtOrder
     }
 
     users ||--o| profiles : "has one"
     profiles ||--|{ orders : "places"
     orders ||--|{ order_items : "contains"
     products ||--o{ order_items : "is part of"
+    products ||--|{ product_images : "has"
 ```
 ---
 ## 8. Penutup

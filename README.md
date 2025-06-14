@@ -39,6 +39,7 @@ erDiagram
     users {
         string userId PK "Appwrite Auth $id"
         string email
+        string name
     }
 
     profiles {
@@ -46,14 +47,22 @@ erDiagram
         string name
         string username "Unique Index"
         string phone_number
-        enum role "admin  atau customer"
+        enum role "admin atau customer"
     }
 
     products {
         string productId PK "Appwrite Doc $id"
         string name
+        string description
         double price
+        int stock
+    }
+
+    product_images {
+        string imageId PK
+        string productId FK "Relasi ke products.productId"
         string imageUrl
+        string fileId
     }
 
     orders {
@@ -71,12 +80,13 @@ erDiagram
         string orderId FK "Relasi ke orders.orderId"
         string productId FK "Relasi ke products.productId"
         int quantity
-        double priceAtOrder "Snapshot harga"
+        double priceAtOrder
     }
 
     users ||--o| profiles : "has one"
     profiles ||--|{ orders : "places"
     orders ||--|{ order_items : "contains"
     products ||--o{ order_items : "is part of"
+    products ||--|{ product_images : "has"
 ```
 ---
