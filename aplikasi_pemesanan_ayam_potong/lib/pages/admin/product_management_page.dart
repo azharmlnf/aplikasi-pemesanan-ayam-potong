@@ -6,7 +6,108 @@ import '../../services/database_service.dart';
 // Nantinya kita akan buat file ini
 import 'create_product_page.dart'; // Import halaman create
 import 'edit_product_page.dart'; // Import halaman edit
+import '../common/product_detail_page.dart';
+// WIDGET BARU UNTUK KARTU PRODUK
+class ProductCard extends StatelessWidget {
+  final models.Document product;
+  final DatabaseService databaseService;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onTap;
 
+  const ProductCard({
+    Key? key,
+    required this.product,
+    required this.databaseService,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final productData = product.data;
+    final name = productData['name'] ?? 'Tanpa Nama';
+    final price = productData['price'] ?? 0.0;
+    
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        elevation: 3,
+        clipBehavior: Clip.antiAlias, // Agar gambar di dalam Card mengikuti bentuk rounded
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Area Gambar
+            Expanded(
+              child: FutureBuilder<List<models.Document>>(
+                future: databaseService.getProductImages(product.$id),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done && snapshot.hasData && snapshot.data!.isNotEmpty) {
+                    return Image.network(
+                      snapshot.data!.first.data['imageUrl'],
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                    );
+                  }
+                  // Tampilkan ikon placeholder jika tidak ada gambar atau saat loading
+                  return Container(
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.inventory_2, size: 40, color: Colors.grey),
+                  );
+                },
+              ),
+            ),
+            
+            // Area Info Produk
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Rp ${price.toStringAsFixed(0)}',
+                    style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+
+            // Area Tombol Aksi
+            Container(
+              color: Colors.grey.shade100,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.edit, color: Colors.blue.shade700, size: 20),
+                    onPressed: onEdit,
+                    tooltip: 'Edit',
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red.shade700, size: 20),
+                    onPressed: onDelete,
+                    tooltip: 'Hapus',
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
 class ProductManagementPage extends StatefulWidget {
   final DatabaseService databaseService;
   final String userRole; // <-- TAMBAHKAN INI
@@ -19,6 +120,8 @@ class ProductManagementPage extends StatefulWidget {
   @override
   _ProductManagementPageState createState() => _ProductManagementPageState();
 }
+
+// lib/pages/admin/product_management_page.dart
 
 class _ProductManagementPageState extends State<ProductManagementPage> {
   late Future<List<models.Document>> _productsFuture;
@@ -35,38 +138,76 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
     });
   }
 
-  //Fungsi untuk navigasi ke form (akan dibuat nanti)
-
-  // Fungsi navigasi untuk TAMBAH produk
   void _navigateToAddPage() async {
     final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            CreateProductPage(databaseService: widget.databaseService),
-      ),
+      context, MaterialPageRoute(builder: (context) => CreateProductPage(databaseService: widget.databaseService)),
     );
     if (result == true) _refreshProducts();
   }
 
-  // Fungsi navigasi untuk EDIT produk
   void _navigateToEditPage(models.Document product) async {
     final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditProductPage(
-          databaseService: widget.databaseService,
-          product: product,
-        ),
-      ),
+      context, MaterialPageRoute(builder: (context) => EditProductPage(databaseService: widget.databaseService, product: product)),
     );
     if (result == true) _refreshProducts();
   }
+
+void _navigateToDetailPage(models.Document product) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ProductDetailPage(
+        databaseService: widget.databaseService,
+        product: product,
+        userRole: 'admin', // <-- KIRIM PERAN 'ADMIN' SECARA EKSPLISIT
+      ),
+    ),
+  );
+}
+void _viewProductDetail(models.Document product) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ProductDetailPage(
+        databaseService: widget.databaseService,
+        product: product,
+        userRole: 'customer', // <-- KIRIM PERAN 'CUSTOMER'
+      ),
+    ),
+  );
+}
+
+  void _deleteProduct(models.Document product) async {
+    final bool? shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Yakin ingin menghapus produk "${product.data['name'] ?? 'ini'}"?'),
+        actions: [
+          TextButton(child: const Text('Batal'), onPressed: () => Navigator.of(context).pop(false)),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Hapus'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      try {
+        await widget.databaseService.deleteProduct(product.$id);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Produk berhasil dihapus!'), backgroundColor: Colors.green));
+        _refreshProducts();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus: $e'), backgroundColor: Colors.red));
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    final bool canModify =
-        widget.userRole == 'admin'; // Cek apakah boleh modifikasi
     return Scaffold(
       body: FutureBuilder<List<models.Document>>(
         future: _productsFuture,
@@ -78,111 +219,37 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Belum ada produk.'));
+            return const Center(child: Text('Belum ada produk. Ketuk + untuk menambah.'));
           }
 
           final products = snapshot.data!;
-          return ListView.builder(
+          // --- GUNAKAN GRIDVIEW.BUILDER DI SINI ---
+          return GridView.builder(
+            padding: const EdgeInsets.all(12.0),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, // 2 kolom
+              crossAxisSpacing: 12.0, // Jarak horizontal antar kartu
+              mainAxisSpacing: 12.0, // Jarak vertikal antar kartu
+              childAspectRatio: 0.75, // Rasio lebar:tinggi kartu. Sesuaikan jika perlu
+            ),
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
-              final productData =
-                  product.data; // Simpan data ke variabel agar lebih rapi
-
-              final name =
-                  productData['name'] as String? ?? 'Produk Tanpa Nama';
-              final price = productData['price'] ?? 0.0;
-              final stock = productData['stock'] ?? 0;
-
-              return ListTile(
-                title: Text(name),
-                subtitle: Text('Rp $price - Stok: $stock'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () {
-                        // Navigasi untuk edit
-                        _navigateToEditPage(product);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () async {
-                        // Tampilkan dialog konfirmasi
-                        final bool? shouldDelete = await showDialog<bool>(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('Konfirmasi Hapus'),
-                              content: Text(
-                                'Apakah Anda yakin ingin menghapus produk "${product.data['name']}"?',
-                              ),
-                              actions: <Widget>[
-                                TextButton(
-                                  child: const Text('Batal'),
-                                  onPressed: () {
-                                    Navigator.of(
-                                      context,
-                                    ).pop(false); // Kirim 'false' saat batal
-                                  },
-                                ),
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                  ),
-                                  child: const Text('Hapus'),
-                                  onPressed: () {
-                                    Navigator.of(
-                                      context,
-                                    ).pop(true); // Kirim 'true' saat setuju
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-
-                        // Hanya jalankan delete jika user menekan tombol 'Hapus'
-                        if (shouldDelete == true) {
-                          try {
-                            // Panggil fungsi deleteProduct dengan imageUrl yang mungkin null
-                            await widget.databaseService.deleteProduct(
-                              product.$id,
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Produk berhasil dihapus!'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                            _refreshProducts(); // Refresh daftar produk
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Gagal menghapus produk: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        }
-                      },
-                    ),
-                  ],
-                ),
+              return ProductCard(
+                product: product,
+                databaseService: widget.databaseService,
+                onTap: () => _navigateToDetailPage(product),
+                onEdit: () => _navigateToEditPage(product),
+                onDelete: () => _deleteProduct(product),
               );
             },
           );
         },
       ),
-      floatingActionButton: Visibility(
-        visible: canModify,
-        child: FloatingActionButton(
-          onPressed: () => _navigateToAddPage(),
-          child: const Icon(Icons.add),
-          tooltip: 'Tambah Produk',
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToAddPage,
+        child: const Icon(Icons.add),
+        tooltip: 'Tambah Produk',
       ),
     );
   }

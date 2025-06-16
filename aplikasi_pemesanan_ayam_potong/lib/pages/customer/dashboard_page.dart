@@ -5,6 +5,7 @@ import 'package:appwrite/models.dart' as models;
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../common/profile_page.dart';
+import 'product_list_page.dart'; // <-- 1. IMPORT HALAMAN BARU
 
 class CustomerDashboardPage extends StatefulWidget {
   final AuthService authService;
@@ -33,8 +34,12 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
 
     // Halaman untuk customer (bisa Anda kembangkan nanti)
     _pages = [
-      const Center(child: Text('Halaman Produk Customer')), // Placeholder
-      const Center(child: Text('Halaman Riwayat Pesanan')), // Placeholder
+// Ganti placeholder dengan halaman list produk yang sebenarnya
+      CustomerProductListPage(
+        databaseService: widget.databaseService,
+        userRole: 'customer', // Kirim peran customer
+      ),
+      const Center(child: Text('Halaman Riwayat Pesanan')),
       ProfilePage(authService: widget.authService, userProfile: _userProfile),
     ];
   }

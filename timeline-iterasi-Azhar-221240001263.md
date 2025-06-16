@@ -28,9 +28,9 @@
 | 2. Buat halaman daftar produk untuk Admin dengan tombol Aksi (Edit, Hapus)      | ✅      |
 | 3. Buat Form untuk menambah & mengedit produk (nama, deskripsi, harga, stok)    | ✅      |
 | 4. Implementasi logic Create, Update, dan Delete untuk dokumen di products      | ✅      |
-| 5. Implementasi fungsi upload gambar ke Appwrite Storage saat menambah produk   | ❌      |
-| 6. Buat preview gambar yang diunggah sebelum dikirim ke Appwrite Storage        | ❌      |
-| 7. Tampilkan gambar produk yang sudah disimpan pada halaman daftar produk Admin | ❌      |
+| 5. Implementasi fungsi upload gambar ke Appwrite Storage saat menambah produk   | ✅      |
+| 6. Buat preview gambar yang diunggah sebelum dikirim ke Appwrite Storage        | ✅      |
+| 7. Tampilkan gambar produk yang sudah disimpan pada halaman daftar produk Admin | ✅      |
 
 **Total task = 7**
 **Task selesai = 4**
@@ -42,8 +42,8 @@
 
 | Task                                                                        | Status |
 | --------------------------------------------------------------------------- | ------ |
-| 1. Buat service untuk mengambil (fetch) data dari collection products       | ❌      |
-| 2. Tampilkan daftar produk di UI dengan gambar, nama, dan harga             | ❌      |
+| 1. Buat service untuk mengambil (fetch) data dari collection products       | ✅      |
+| 2. Tampilkan daftar produk di UI dengan gambar, nama, dan harga             | ✅      |
 | 3. Implementasi state management untuk keranjang belanja (local state)      | ❌      |
 | 4. Tambahkan fungsionalitas "Tambah ke Keranjang" & "Ubah Kuantitas"        | ❌      |
 | 5. Buat halaman Keranjang Belanja untuk menampilkan ringkasan & total harga | ❌      |
