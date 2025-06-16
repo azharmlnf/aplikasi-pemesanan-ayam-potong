@@ -33,8 +33,8 @@
 | 7. Tampilkan gambar produk yang sudah disimpan pada halaman daftar produk Admin | ✅      |
 
 **Total task = 7**
-**Task selesai = 4**
-**Persentase progress = (4/7) × 100% ≈ 57%**
+**Task selesai = 7**
+**Persentase progress = (7/7) × 100% ≈ 100%**
 
 ---
 
@@ -49,8 +49,8 @@
 | 5. Buat halaman Keranjang Belanja untuk menampilkan ringkasan & total harga | ❌      |
 
 **Total task = 5**
-**Task selesai = 0**
-**Persentase progress = (0/5) × 100% = 0%**
+**Task selesai = 2**
+**Persentase progress = (2/5) × 100% = 40%**
 
 ---
 
