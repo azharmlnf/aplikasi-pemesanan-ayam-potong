@@ -253,45 +253,56 @@ class DatabaseService {
     );
   }
 
-  // === FUNGSI CHECKOUT ===
-  Future<void> createOrderFromCart(
-    List<CartItem> cartItems,
-    double totalPrice,
-    String userId,
-  ) async {
-    // 1. Buat satu dokumen utama di collection 'orders'
-    final orderDoc = await databases.createDocument(
+  // ==============================
+  // === FUNGSI CHECKOUT (BARU) ===
+  // ==============================
+Future<void> createOrderFromCart({
+  required String userId,
+  required List<CartItem> cartItems,
+  required double totalPrice,
+  String? description,
+}) async {
+  // 1. Buat dokumen induk di 'orders' (tanpa 'pieces')
+  final orderDoc = await databases.createDocument(
+    databaseId: AppwriteConstants.databaseId,
+    collectionId: AppwriteConstants.ordersCollectionId,
+    documentId: ID.unique(),
+    data: {
+      'customerId': userId,
+      'totalPrice': totalPrice,
+      'status': 'pending',
+      'orderDate': DateTime.now().toIso8601String(),
+      'description': description,
+    },
+    permissions: [
+      Permission.read(Role.user(userId)),
+      Permission.update(Role.user(userId)),
+      Permission.delete(Role.user(userId)),
+      Permission.read(Role.users()),
+      Permission.update(Role.users()),
+    ],
+  );
+
+  final orderId = orderDoc.$id;
+
+  // 2. Buat dokumen detail di 'order_items' (DENGAN 'pieces')
+  for (var item in cartItems) {
+    await databases.createDocument(
       databaseId: AppwriteConstants.databaseId,
-      collectionId: AppwriteConstants.ordersCollectionId,
+      collectionId: AppwriteConstants.orderItemsCollectionId,
       documentId: ID.unique(),
       data: {
-        'customerId': userId,
-        'totalPrice': totalPrice,
-        'status': 'pending',
-        'orderDate': DateTime.now().toIso8601String(),
-        // Kita bisa ambil 'pieces' dan 'description' dari item pertama jika seragam,
-        // atau modifikasi struktur agar bisa menyimpan info ini.
-        // Untuk saat ini, kita bisa ambil dari item pertama sebagai contoh.
-        'pieces': cartItems.isNotEmpty ? cartItems.first.pieces : 8,
-        'description':
-            'Pesanan dari aplikasi.', // Deskripsi bisa ditambahkan di halaman checkout nanti
+        'orderId': orderId,
+        'productId': item.productId,
+        'quantity': item.quantity,
+        'priceAtOrder': item.price,
+        'pieces': item.pieces, // <-- PASTIKAN BARIS INI ADA
       },
-      permissions: [Permission.read(Role.user(userId))], // Izin untuk pemilik
+      permissions: [
+        Permission.read(Role.user(userId)),
+        Permission.read(Role.users()),
+      ],
     );
-  // 2. Loop melalui setiap item di keranjang dan buat dokumen di 'order_items'
-    for (var item in cartItems) {
-      await databases.createDocument(
-        databaseId: AppwriteConstants.databaseId,
-        collectionId: AppwriteConstants.orderItemsCollectionId,
-        documentId: ID.unique(),
-        data: {
-          'orderId': orderDoc.$id,
-          'productId': item.productId,
-          'quantity': item.quantity,
-          'priceAtOrder': item.price,
-        },
-         permissions: [Permission.read(Role.user(userId))],
-      );
-    }
   }
+}
 }

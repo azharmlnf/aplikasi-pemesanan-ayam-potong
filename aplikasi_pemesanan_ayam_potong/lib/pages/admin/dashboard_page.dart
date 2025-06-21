@@ -37,7 +37,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     super.initState();
     // Inisialisasi halaman dengan data awal (kosong/placeholder)
     _pages = [
-      ProductManagementPage(databaseService: widget.databaseService, userRole: ''), // Role awal kosong
+      ProductManagementPage(databaseService: widget.databaseService, userRole: '', authService: widget.authService, ), // Role awal kosong
       OrderManagementPage(databaseService: widget.databaseService),
       ProfilePage(authService: widget.authService, userProfile: null),
     ];
@@ -55,7 +55,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         setState(() {
           _userProfile = profile;
           // Update halaman yang membutuhkan data profil
-          _pages[0] = ProductManagementPage(databaseService: widget.databaseService, userRole: _userProfile?.data['role'] ?? 'customer');
+          _pages[0] = ProductManagementPage(databaseService: widget.databaseService, userRole: _userProfile?.data['role'] ?? 'customer', authService: widget.authService, );
           _pages[2] = ProfilePage(authService: widget.authService, userProfile: _userProfile);
           _isLoadingProfile = false; // Set loading menjadi false setelah selesai
         });

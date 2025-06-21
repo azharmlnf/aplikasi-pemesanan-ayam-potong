@@ -38,6 +38,7 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     _pages = [
       CustomerProductListPage(
         databaseService: widget.databaseService,
+                authService: widget.authService, // <-- KIRIMKAN DI SINI
         userRole: 'customer',
       ),
       const Center(child: Text('Halaman Riwayat Pesanan')), // Placeholder
@@ -80,18 +81,21 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
               padding: const EdgeInsets.only(right: 8.0), // Beri sedikit jarak dari tepi
               child: CartBadge(
                 onTap: () {
-                  // Aksi saat ikon keranjang ditekan: navigasi ke halaman keranjang
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (ctx) => const CartPage()),
-                  );
-                },
-                // Widget anak adalah ikon keranjang itu sendiri
-                child: const IconButton(
-                  icon: Icon(Icons.shopping_cart_outlined),
-                  tooltip: 'Keranjang Belanja',
-                  // Biarkan onPressed null karena onTap sudah dihandle oleh CartBadge
-                  onPressed: null, 
-                ),
+    // Gunakan MaterialPageRoute dan kirim service yang dibutuhkan
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => CartPage(
+          authService: widget.authService,
+          databaseService: widget.databaseService,
+        ),
+      ),
+    );
+  },
+  child: const IconButton(
+    icon: Icon(Icons.shopping_cart_outlined),
+    tooltip: 'Keranjang Belanja',
+    onPressed: null,
+  ),
               ),
             ),
         ],

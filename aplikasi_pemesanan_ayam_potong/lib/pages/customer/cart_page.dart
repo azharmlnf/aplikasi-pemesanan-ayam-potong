@@ -2,88 +2,142 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:appwrite/appwrite.dart';
 import '../../providers/cart_provider.dart';
+import '../../services/auth_service.dart';
+import '../../services/database_service.dart';
 import '../../models/cart_item.dart';
 
-class CartPage extends StatelessWidget {
-  const CartPage({Key? key}) : super(key: key);
+class CartPage extends StatefulWidget {
+  final AuthService authService;
+  final DatabaseService databaseService;
+
+  const CartPage({
+    Key? key,
+    required this.authService,
+    required this.databaseService,
+  }) : super(key: key);
+
+  @override
+  State<CartPage> createState() => _CartPageState();
+}
+
+class _CartPageState extends State<CartPage> {
+  // Hanya butuh controller untuk deskripsi
+  final _descriptionController = TextEditingController();
+  bool _isProcessing = false;
+
+  void _checkout() async {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    final user = await widget.authService.getCurrentUser();
+
+    if (user == null) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sesi Anda telah berakhir.')));
+      return;
+    }
+
+    setState(() => _isProcessing = true);
+
+    try {
+      // Panggil fungsi checkout yang sudah disederhanakan
+      await widget.databaseService.createOrderFromCart(
+        userId: user.$id,
+        cartItems: cart.items.values.toList(),
+        totalPrice: cart.totalAmount,
+        description: _descriptionController.text.trim(),
+      );
+
+      cart.clear();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pesanan berhasil dibuat!'), backgroundColor: Colors.green));
+        Navigator.of(context).pop();
+      }
+    } on AppwriteException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal membuat pesanan: ${e.message}'), backgroundColor: Colors.red));
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+  
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<CartProvider>(
       builder: (ctx, cart, _) {
         final cartItems = cart.items.values.toList();
-        final cartItemKeys = cart.items.keys.toList(); // Ambil juga list of keys
+        final cartItemKeys = cart.items.keys.toList();
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Keranjang Saya')),
+          appBar: AppBar(title: const Text('Checkout Pesanan')),
           body: Column(
             children: [
-              // Pesan Peringatan
-              if (cartItems.isNotEmpty) // Tampilkan hanya jika ada item
-                Container(
-                  width: double.infinity,
-                  color: Colors.amber.shade100,
-                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.amber.shade800),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Item di keranjang akan terhapus jika Anda keluar dari aplikasi.',
-                          style: TextStyle(color: Colors.amber.shade900),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              
-              // Ringkasan Total Harga
-              Card(
-                margin: const EdgeInsets.all(15),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      const Text('Total', style: TextStyle(fontSize: 20)),
-                      const Spacer(),
-                      Chip(
-                        label: Text(
-                          'Rp ${cart.totalAmount.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryTextTheme.titleLarge?.color,
-                          ),
-                        ),
-                        backgroundColor: Theme.of(context).primaryColor,
-                      ),
-                      TextButton(
-                        child: const Text('PESAN SEKARANG'),
-                        onPressed: cart.items.isEmpty ? null : () {
-                          // TODO: Implementasi logika checkout
-                        },
-                      )
-                    ],
-                  ),
-                ),
-              ),
-
-              // Daftar Item di Keranjang
               Expanded(
                 child: cartItems.isEmpty
                     ? const Center(child: Text('Keranjang Anda masih kosong.'))
                     : ListView.builder(
+                        padding: const EdgeInsets.all(8),
                         itemCount: cartItems.length,
                         itemBuilder: (ctx, i) {
-                          // --- INI BAGIAN YANG DIPERBAIKI ---
-                          // Kirim key dan item ke widget tile
                           return CartItemTile(
                             cartItemKey: cartItemKeys[i],
                             item: cartItems[i],
                           );
                         },
                       ),
+              ),
+
+              // Bagian Form & Tombol Checkout
+              Card(
+                margin: EdgeInsets.zero,
+                elevation: 10,
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // HANYA ADA FORM DESKRIPSI
+                      TextField(
+                        controller: _descriptionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Catatan Tambahan (Opsional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 2,
+                      ),
+                      const Divider(height: 24),
+                      // Ringkasan Total & Tombol Checkout
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Total Bayar', style: TextStyle(color: Colors.grey)),
+                              Text(
+                                'Rp ${cart.totalAmount.toStringAsFixed(0)}',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12)),
+                            onPressed: (cart.items.isEmpty || _isProcessing) ? null : _checkout,
+                            child: _isProcessing 
+                                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3,))
+                                : const Text('PESAN SEKARANG'),
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -93,59 +147,35 @@ class CartPage extends StatelessWidget {
   }
 }
 
-// Widget terpisah untuk setiap baris item di keranjang
+// Widget CartItemTile sekarang menampilkan info potongan
 class CartItemTile extends StatelessWidget {
   final String cartItemKey;
   final CartItem item;
 
-  const CartItemTile({
-    Key? key,
-    required this.cartItemKey,
-    required this.item,
-  }) : super(key: key);
+  const CartItemTile({Key? key, required this.cartItemKey, required this.item}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context, listen: false);
-
-    return Dismissible(
-      key: ValueKey(cartItemKey),
-      background: Container(
-        color: Theme.of(context).colorScheme.error,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white, size: 40),
-      ),
-      direction: DismissDirection.endToStart,
-      onDismissed: (direction) => cart.removeItem(cartItemKey),
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Theme.of(context).primaryColorLight,
-              child: FittedBox(
-                child: Text('x${item.quantity}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColorDark)),
-              ),
-            ),
-            title: Text(item.name),
-            subtitle: Text('Potong ${item.pieces} - Rp${item.price.toStringAsFixed(0)}/pcs'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                  onPressed: () => cart.removeSingleItem(cartItemKey),
-                ),
-                Text('${item.quantity}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline, color: Colors.green),
-               onPressed: () => cart.addSingleItem(cartItemKey), 
-                tooltip: 'Tambah Jumlah',
-                ),
-              ],
-            ),
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Theme.of(context).primaryColorLight,
+            child: Text('x${item.quantity}', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColorDark)),
+          ),
+          title: Text(item.name),
+          // TAMPILKAN INFORMASI POTONGAN DI SINI
+          subtitle: Text('Potong ${item.pieces}'),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(icon: const Icon(Icons.remove_circle_outline, color: Colors.red), onPressed: () => cart.removeSingleItem(cartItemKey)),
+              Text('${item.quantity}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              IconButton(icon: const Icon(Icons.add_circle_outline, color: Colors.green), onPressed: () => cart.addSingleItem(cartItemKey)),
+            ],
           ),
         ),
       ),

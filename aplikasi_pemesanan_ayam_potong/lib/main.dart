@@ -17,9 +17,6 @@ import 'providers/cart_provider.dart';
 import 'pages/customer/cart_page.dart'; // <-- 1. IMPORT HALAMAN KERANJANG
 
 
-// <<< 1. BUAT GLOBAL KEY DI SINI, DI LUAR CLASS >>>
-final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,7 +64,6 @@ class _MyAppState extends State<MyApp> {
       create: (ctx) => CartProvider(),
       child: MaterialApp(
          // <<< 2. PASANG KUNCI GLOBAL KE MATERIALAPP >>>
-        scaffoldMessengerKey: scaffoldMessengerKey,
         title: 'Pesan Ayam Potong App',
         theme: ThemeData(
           primarySwatch: Colors.teal,
@@ -128,8 +124,7 @@ class _MyAppState extends State<MyApp> {
             authService: authService,
             databaseService: databaseService,
           ),
-          // --- 2. TAMBAHKAN RUTE BARU DI SINI ---
-          '/cart': (context) => const CartPage(),
+
         },
       ),
     );

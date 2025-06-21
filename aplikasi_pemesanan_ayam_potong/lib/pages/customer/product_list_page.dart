@@ -1,5 +1,6 @@
 // lib/pages/customer/product_list_page.dart
 
+import 'package:app_pemesanan_ayam_potong/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
 import '../../services/database_service.dart';
@@ -7,11 +8,13 @@ import '../common/product_detail_page.dart';
 
 class CustomerProductListPage extends StatefulWidget {
   final DatabaseService databaseService;
+   final AuthService authService; // <-- TAMBAHKAN INI
   final String userRole;
 
   const CustomerProductListPage({
     Key? key,
     required this.databaseService,
+        required this.authService, // <-- TAMBAHKAN DI CONSTRUCTOR
     required this.userRole,
   }) : super(key: key);
 
@@ -42,6 +45,7 @@ class _CustomerProductListPageState extends State<CustomerProductListPage> {
           databaseService: widget.databaseService,
           product: product,
           userRole: widget.userRole,
+           authService: widget.authService, // <-- KIRIMKAN AUTHSERVICE DI SINI
         ),
       ),
     );

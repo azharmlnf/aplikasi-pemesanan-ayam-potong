@@ -1,11 +1,13 @@
 // lib/pages/admin/product_management_page.dart
 
+import 'package:app_pemesanan_ayam_potong/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
 import '../../services/database_service.dart';
 import '../common/product_detail_page.dart';
 import 'create_product_page.dart';
 import 'edit_product_page.dart';
+import '../../services/auth_service.dart'; // <-- 1. IMPORT AuthService
 
 // --- WIDGET UNTUK KARTU PRODUK (TIDAK ADA PERUBAHAN) ---
 class ProductCard extends StatelessWidget {
@@ -85,7 +87,13 @@ class ProductCard extends StatelessWidget {
 // --- HALAMAN UTAMA MANAJEMEN PRODUK ---
 class ProductManagementPage extends StatefulWidget {
   final DatabaseService databaseService;
-  const ProductManagementPage({Key? key, required this.databaseService, required String userRole}) : super(key: key);
+  final AuthService authService; // <-- 2. TAMBAHKAN AuthService
+  const ProductManagementPage({
+    Key? key, 
+    required this.databaseService, 
+    required String userRole, 
+required this.authService, // <-- 3. JADIKAN WAJIB DI CONSTRUCTOR    
+}) : super(key: key);
 
   @override
   _ProductManagementPageState createState() => _ProductManagementPageState();
@@ -133,7 +141,9 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
           databaseService: widget.databaseService,
           product: product,
           userRole: 'admin', // Kirim peran 'admin'
-        ),
+         // --- 4. PERBAIKI BAGIAN INI ---
+          // Gunakan authService dari widget, bukan Provider.of
+          authService: widget.authService,         ),
       ),
     );
     // Jika halaman detail kembali dengan 'true' (karena ada editan dari sana), refresh juga

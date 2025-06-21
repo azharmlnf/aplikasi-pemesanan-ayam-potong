@@ -8,17 +8,21 @@ import '../../services/database_service.dart';
 import '../../models/cart_item.dart';
 import '../../providers/cart_provider.dart';
 import '../admin/edit_product_page.dart'; // <-- PASTIKAN IMPORT INI ADA
+import "../customer/cart_page.dart";
+import '../../services/auth_service.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final models.Document product;
   final DatabaseService databaseService;
   final String userRole;
+   final AuthService authService; // <<< TAMBAHKAN PARAMETER INI
 
   const ProductDetailPage({
     Key? key,
     required this.product,
     required this.databaseService,
     required this.userRole,
+        required this.authService, // <<< JADIKAN WAJIB
   }) : super(key: key);
 
   @override
@@ -30,7 +34,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   final PageController _pageController = PageController();
   int _currentImageIndex = 0;
 
- // <<< TAMBAHKAN FUNGSI BARU INI >>>
+  // <<< TAMBAHKAN FUNGSI BARU INI >>>
   void _navigateToEditPage() async {
     // Navigasi ke EditProductPage dan TUNGGU hasilnya
     final bool? result = await Navigator.push(
@@ -66,31 +70,31 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   // --- FUNGSI UNTUK MENAMPILKAN FORM DI BOTTOMSHEET (DIPERBAIKI) ---
   void _showAddToCartForm() async {
-  // --- UBAH TIPE DATA DI SINI ---
-  // Ganti Map<String, int> menjadi Map<String, int?>
-  final result = await showModalBottomSheet<Map<String, int?>>(
-    context: context,
-    isScrollControlled: true,
-    builder: (ctx) {
-      return AddToCartForm(pieceOptions: const [1, 2, 4, 6, 8]);
-    },
-  );
-
-  // Cek jika pengguna menutup sheet tanpa konfirmasi (result == null)
-  if (result == null) return;
-
-  // Sekarang 'result' sudah benar bertipe Map<String, int?>
-  final quantity = result['quantity'];
-  final pieces = result['pieces'];
-
-  // Validasi tetap penting
-  if (quantity != null && pieces != null) {
-    final cart = Provider.of<CartProvider>(context, listen: false);
-    cart.addItem(
-      productDoc: widget.product,
-      quantity: quantity,
-      pieces: pieces,
+    // --- UBAH TIPE DATA DI SINI ---
+    // Ganti Map<String, int> menjadi Map<String, int?>
+    final result = await showModalBottomSheet<Map<String, int?>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return AddToCartForm(pieceOptions: const [1, 2, 4, 6, 8]);
+      },
     );
+
+    // Cek jika pengguna menutup sheet tanpa konfirmasi (result == null)
+    if (result == null) return;
+
+    // Sekarang 'result' sudah benar bertipe Map<String, int?>
+    final quantity = result['quantity'];
+    final pieces = result['pieces'];
+
+    // Validasi tetap penting
+    if (quantity != null && pieces != null) {
+      final cart = Provider.of<CartProvider>(context, listen: false);
+      cart.addItem(
+        productDoc: widget.product,
+        quantity: quantity,
+        pieces: pieces,
+      );
 
       // Tampilkan SnackBar menggunakan context dari ProductDetailPage yang valid
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -102,7 +106,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             label: 'LIHAT',
             textColor: Colors.amber,
             onPressed: () {
-              Navigator.pushNamed(context, '/cart');
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (ctx) => CartPage(
+                    // Ambil service dari widget ProductDetailPage
+                    authService: widget.authService,
+                    databaseService: widget.databaseService,
+                  ),
+                ),
+              );
             },
           ),
         ),
@@ -122,9 +134,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 IconButton(
                   icon: const Icon(Icons.edit_note),
                   // Panggil fungsi navigasi yang baru kita buat
-                  onPressed: _navigateToEditPage, 
+                  onPressed: _navigateToEditPage,
                   tooltip: 'Edit Produk',
-                )
+                ),
               ]
             : null,
       ),
@@ -141,7 +153,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 children: [
                   Text(
                     productData['name'] ?? 'Produk Tanpa Nama',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -149,22 +163,34 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     children: [
                       Text(
                         'Rp ${productData['price']?.toStringAsFixed(0) ?? '0'}',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       Text(
                         'Stok: ${productData['stock'] ?? 0}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade700),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: Colors.grey.shade700),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 16),
-                  Text('Deskripsi Produk', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Deskripsi Produk',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     productData['description'] ?? 'Tidak ada deskripsi.',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(height: 1.5),
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -178,26 +204,30 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget? _buildBottomActionButton() {
-  // Jika peran pengguna adalah 'customer', kembalikan tombol.
-  if (widget.userRole == 'customer') {
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.add_shopping_cart),
-        label: const Text('Tambah ke Keranjang'),
-        onPressed: _showAddToCartForm,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    // Jika peran pengguna adalah 'customer', kembalikan tombol.
+    if (widget.userRole == 'customer') {
+      return Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: ElevatedButton.icon(
+          icon: const Icon(Icons.add_shopping_cart),
+          label: const Text('Tambah ke Keranjang'),
+          onPressed: _showAddToCartForm,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            textStyle: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-      ),
-    );
+      );
+    }
+
+    // --- TAMBAHKAN BARIS INI ---
+    // Jika bukan 'customer' (misalnya admin), kembalikan null secara eksplisit.
+    return null;
   }
-  
-  // --- TAMBAHKAN BARIS INI ---
-  // Jika bukan 'customer' (misalnya admin), kembalikan null secara eksplisit.
-  return null; 
-}
+
   // Widget untuk galeri gambar (tidak ada perubahan)
   Widget _buildImageGallery() {
     return FutureBuilder<List<models.Document>>(
@@ -290,6 +320,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 }
+
 // --- WIDGET BARU & TERPISAH UNTUK FORM DI BOTTOM SHEET ---
 class AddToCartForm extends StatefulWidget {
   final List<int> pieceOptions;
@@ -319,7 +350,9 @@ class _AddToCartFormState extends State<AddToCartForm> {
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 20, right: 20, top: 20,
+        left: 20,
+        right: 20,
+        top: 20,
       ),
       // Bungkus dengan Form agar bisa menggunakan validator
       child: Form(
@@ -328,7 +361,10 @@ class _AddToCartFormState extends State<AddToCartForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text("Atur Pesanan", style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              "Atur Pesanan",
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -336,11 +372,22 @@ class _AddToCartFormState extends State<AddToCartForm> {
                 const Text("Jumlah:", style: TextStyle(fontSize: 16)),
                 Row(
                   children: [
-                    IconButton(icon: const Icon(Icons.remove_circle), onPressed: () { if (_quantity > 1) setState(() => _quantity--); }),
-                    Text("$_quantity", style: Theme.of(context).textTheme.titleLarge),
-                    IconButton(icon: const Icon(Icons.add_circle), onPressed: () => setState(() => _quantity++)),
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle),
+                      onPressed: () {
+                        if (_quantity > 1) setState(() => _quantity--);
+                      },
+                    ),
+                    Text(
+                      "$_quantity",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle),
+                      onPressed: () => setState(() => _quantity++),
+                    ),
                   ],
-                )
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -351,11 +398,23 @@ class _AddToCartFormState extends State<AddToCartForm> {
               decoration: const InputDecoration(
                 labelText: 'Dipotong Menjadi',
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 16,
+                ),
               ),
-              items: widget.pieceOptions.map((pieces) =>
-                DropdownMenuItem(value: pieces, child: Text(pieces == 1 ? '1 (Utuh Tidak Dipotong)' : '$pieces bagian')),
-              ).toList(),
+              items: widget.pieceOptions
+                  .map(
+                    (pieces) => DropdownMenuItem(
+                      value: pieces,
+                      child: Text(
+                        pieces == 1
+                            ? '1 (Utuh Tidak Dipotong)'
+                            : '$pieces bagian',
+                      ),
+                    ),
+                  )
+                  .toList(),
               onChanged: (value) => setState(() => _selectedPieces = value),
               // Validator akan menampilkan pesan error di bawah field jika null
               validator: (value) {

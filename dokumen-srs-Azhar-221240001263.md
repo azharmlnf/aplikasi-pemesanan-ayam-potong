@@ -141,7 +141,6 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 | \$id        | string   | ID pesanan                                      |
 | customerId  | string   | FK ke profiles.\$id                             |
 | description | string   | deskripsi pesanan                               |
-| pieces      | enum     | (1,2,4,6,8) ayam dipotong menjadi berapa bagian |
 | totalPrice  | double   | Total harga pesanan                             |
 | status      | string   | pending / processed                             |
 | orderDate   | datetime | Timestamp ISO8601                               |
@@ -154,6 +153,7 @@ Aplikasi mobile dengan backend Appwrite untuk autentikasi, database, dan penyimp
 | orderId      | string  | FK ke orders.\$id   |
 | productId    | string  | FK ke products.\$id |
 | quantity     | integer | Jumlah produk       |
+| pieces      | integer     | (1,2,4,6,8) ayam dipotong menjadi berapa bagian |
 | priceAtOrder | double  | Harga saat dipesan  |
 
 ---
@@ -246,7 +246,6 @@ erDiagram
         string orderId PK "Appwrite Doc $id"
         string customerId FK "Relasi ke profiles.userId"
         string description 
-        enum pieces  "(1,2,4,6,8) ayam dipotong menjadi"
         double totalPrice
         string status
         datetime orderDate
@@ -257,6 +256,7 @@ erDiagram
         string orderId FK "Relasi ke orders.orderId"
         string productId FK "Relasi ke products.productId"
         int quantity
+        int pieces  "(1,2,4,6,8) ayam dipotong menjadi"
         double priceAtOrder
     }
 
@@ -266,22 +266,7 @@ erDiagram
     products ||--o{ order_items : "is part of"
     products ||--|{ product_images : "has"
 ```
----
- ## 7.3 Alur Simpan Gambar
 
-```mermaid
-flowchart TD
-    A["User: Input Gambar via Form Produk"] --> B["Flutter: Ambil Gambar dari Galeri/Kamera"]
-    B --> C["Flutter: Upload ke Appwrite Storage"]
-    C --> D["Appwrite: Simpan File ke Bucket 'product_images'"]
-    D --> E["Flutter: Dapatkan fileId dari Response"]
-    E --> F["Flutter: Buat imageUrl dari fileId"]
-    F --> G["Flutter: Kirim Data Produk + imageUrl ke Database"]
-    G --> H["Appwrite: Simpan Dokumen Produk"]
-    H --> I["Customer: Buka Katalog Produk"]
-    I --> J["Flutter: Ambil Data Produk dari Appwrite"]
-    J --> K["Flutter: Tampilkan Gambar via Image.network()"]
-```
 ---
 ## 8. Penutup
 
