@@ -5,11 +5,13 @@ import 'package:appwrite/models.dart' as models;
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../common/profile_page.dart';
-import 'product_list_page.dart'; // <-- 1. IMPORT HALAMAN BARU
+import 'product_list_page.dart';
+import '../../widgets/cart_badge.dart'; // <-- 1. IMPORT WIDGET BADGE
+import 'cart_page.dart';              // <-- 2. IMPORT HALAMAN KERANJANG
 
 class CustomerDashboardPage extends StatefulWidget {
   final AuthService authService;
-  final DatabaseService databaseService; // Terima DatabaseService
+  final DatabaseService databaseService;
 
   const CustomerDashboardPage({
     Key? key,
@@ -32,14 +34,13 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     super.initState();
     _loadUserProfile();
 
-    // Halaman untuk customer (bisa Anda kembangkan nanti)
+    // Halaman untuk customer
     _pages = [
-// Ganti placeholder dengan halaman list produk yang sebenarnya
       CustomerProductListPage(
         databaseService: widget.databaseService,
-        userRole: 'customer', // Kirim peran customer
+        userRole: 'customer',
       ),
-      const Center(child: Text('Halaman Riwayat Pesanan')),
+      const Center(child: Text('Halaman Riwayat Pesanan')), // Placeholder
       ProfilePage(authService: widget.authService, userProfile: _userProfile),
     ];
   }
@@ -48,13 +49,15 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     final user = await widget.authService.getCurrentUser();
     if (user != null) {
       final profile = await widget.databaseService.getProfile(user.$id);
-      setState(() {
-        _userProfile = profile;
-        _pages[2] = ProfilePage(
-          authService: widget.authService,
-          userProfile: _userProfile,
-        );
-      });
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+          _pages[2] = ProfilePage(
+            authService: widget.authService,
+            userProfile: _userProfile,
+          );
+        });
+      }
     }
   }
 
@@ -69,16 +72,46 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_pageTitles[_selectedIndex]),
+        // --- BAGIAN YANG DIPERBARUI ---
+        actions: <Widget>[
+          // Tampilkan ikon keranjang hanya jika kita tidak berada di halaman profil
+          if (_selectedIndex != 2)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0), // Beri sedikit jarak dari tepi
+              child: CartBadge(
+                onTap: () {
+                  // Aksi saat ikon keranjang ditekan: navigasi ke halaman keranjang
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (ctx) => const CartPage()),
+                  );
+                },
+                // Widget anak adalah ikon keranjang itu sendiri
+                child: const IconButton(
+                  icon: Icon(Icons.shopping_cart_outlined),
+                  tooltip: 'Keranjang Belanja',
+                  // Biarkan onPressed null karena onTap sudah dihandle oleh CartBadge
+                  onPressed: null, 
+                ),
+              ),
+            ),
+        ],
+        // --- AKHIR BAGIAN YANG DIPERBARUI ---
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.history_outlined), label: 'Pesanan'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Beranda',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history_outlined),
+            label: 'Pesanan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profil',
+          ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,

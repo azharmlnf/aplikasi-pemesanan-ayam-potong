@@ -16,7 +16,6 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tampilkan loading jika data profil belum siap
     if (userProfile == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -29,10 +28,7 @@ class ProfilePage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Informasi Akun',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
+          const Text('Informasi Akun', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
           Card(
             elevation: 4,
@@ -44,29 +40,20 @@ class ProfilePage extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.person_outline),
                     title: const Text('Username'),
-                    subtitle: Text(
-                      profileData['username'] ?? 'Tidak ada data',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
+                    subtitle: Text(profileData['username'] ?? 'Tidak ada data', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                   ),
                   const Divider(),
                   ListTile(
                     leading: const Icon(Icons.badge_outlined),
                     title: const Text('Nama Lengkap'),
-                    subtitle: Text(
-                      profileData['name'] ?? 'Tidak ada data',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
+                    subtitle: Text(profileData['name'] ?? 'Tidak ada data', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                   ),
                   const Divider(),
                   ListTile(
                     leading: const Icon(Icons.shield_outlined),
                     title: const Text('Peran Akun'),
                     subtitle: Chip(
-                      label: Text(
-                        role.toUpperCase(),
-                        style: const TextStyle(color: Colors.white),
-                      ),
+                      label: Text(role.toUpperCase(), style: const TextStyle(color: Colors.white)),
                       backgroundColor: role == 'admin' ? Colors.teal : Colors.blue,
                     ),
                   ),
@@ -74,7 +61,7 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
           ),
-          const Spacer(), // Mendorong tombol ke bawah
+          const Spacer(),
           Center(
             child: ElevatedButton.icon(
               icon: const Icon(Icons.logout),
@@ -85,9 +72,14 @@ class ProfilePage extends StatelessWidget {
                 textStyle: const TextStyle(fontSize: 16),
               ),
               onPressed: () async {
-                await authService.logout();
-                // Kembali ke halaman login dan hapus semua rute sebelumnya
-                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                // --- PERUBAHAN DI SINI ---
+                // Kirim 'context' ke fungsi logout
+                await authService.logout(context); 
+                
+                // Gunakan context yang masih valid sebelum navigasi
+                if (context.mounted) {
+                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                }
               },
             ),
           ),

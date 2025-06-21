@@ -1,5 +1,10 @@
+// lib/services/auth_service.dart
+
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
+import 'package:provider/provider.dart'; // <-- 1. Import Provider
+import 'package:flutter/material.dart'; // <-- 2. Import Material untuk BuildContext
+import '../providers/cart_provider.dart'; // <-- 3. Import CartProvider
 import 'database_service.dart';
 
 class AuthService {
@@ -72,10 +77,21 @@ class AuthService {
     }
   }
 
-  // Fungsi Logout
-  Future<void> logout() async {
+ // --- FUNGSI LOGOUT YANG DIPERBARUI ---
+  Future<void> logout(BuildContext context) async { // <-- 4. Terima BuildContext
     try {
+      // 5. Akses CartProvider SEBELUM logout
+      // listen: false karena kita hanya akan memanggil fungsi, tidak mendengarkan perubahan
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
+      
+      // 6. Panggil fungsi clear() untuk membersihkan keranjang
+      cartProvider.clear();
+
+      // 7. Lanjutkan proses logout dari Appwrite
       await account.deleteSession(sessionId: 'current');
+
+      print("Logout berhasil dan keranjang dibersihkan.");
+
     } on AppwriteException catch (e) {
       print('Gagal Logout: ${e.message}');
     }
