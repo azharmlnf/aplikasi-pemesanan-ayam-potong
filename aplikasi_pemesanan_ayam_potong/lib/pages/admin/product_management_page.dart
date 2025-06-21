@@ -3,11 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
 import '../../services/database_service.dart';
-// Nantinya kita akan buat file ini
-import 'create_product_page.dart'; // Import halaman create
-import 'edit_product_page.dart'; // Import halaman edit
 import '../common/product_detail_page.dart';
-// WIDGET BARU UNTUK KARTU PRODUK
+import 'create_product_page.dart';
+import 'edit_product_page.dart';
+
+// --- WIDGET UNTUK KARTU PRODUK (TIDAK ADA PERUBAHAN) ---
 class ProductCard extends StatelessWidget {
   final models.Document product;
   final DatabaseService databaseService;
@@ -34,14 +34,11 @@ class ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Card(
         elevation: 3,
-        clipBehavior: Clip.antiAlias, // Agar gambar di dalam Card mengikuti bentuk rounded
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Area Gambar
             Expanded(
               child: FutureBuilder<List<models.Document>>(
                 future: databaseService.getProductImages(product.$id),
@@ -53,52 +50,28 @@ class ProductCard extends StatelessWidget {
                       errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 40, color: Colors.grey),
                     );
                   }
-                  // Tampilkan ikon placeholder jika tidak ada gambar atau saat loading
-                  return Container(
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.inventory_2, size: 40, color: Colors.grey),
-                  );
+                  return Container(color: Colors.grey.shade200, child: const Icon(Icons.inventory_2, size: 40, color: Colors.grey));
                 },
               ),
             ),
-            
-            // Area Info Produk
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    name,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
-                  Text(
-                    'Rp ${price.toStringAsFixed(0)}',
-                    style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w600),
-                  ),
+                  Text('Rp ${price.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
-
-            // Area Tombol Aksi
             Container(
               color: Colors.grey.shade100,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.edit, color: Colors.blue.shade700, size: 20),
-                    onPressed: onEdit,
-                    tooltip: 'Edit',
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red.shade700, size: 20),
-                    onPressed: onDelete,
-                    tooltip: 'Hapus',
-                  ),
+                  IconButton(icon: Icon(Icons.edit, color: Colors.blue.shade700, size: 20), onPressed: onEdit, tooltip: 'Edit'),
+                  IconButton(icon: Icon(Icons.delete, color: Colors.red.shade700, size: 20), onPressed: onDelete, tooltip: 'Hapus'),
                 ],
               ),
             )
@@ -108,20 +81,15 @@ class ProductCard extends StatelessWidget {
     );
   }
 }
+
+// --- HALAMAN UTAMA MANAJEMEN PRODUK ---
 class ProductManagementPage extends StatefulWidget {
   final DatabaseService databaseService;
-  final String userRole; // <-- TAMBAHKAN INI
-  const ProductManagementPage({
-    Key? key,
-    required this.databaseService,
-    required this.userRole, // <-- TAMBAHKAN INI
-  }) : super(key: key);
+  const ProductManagementPage({Key? key, required this.databaseService, required String userRole}) : super(key: key);
 
   @override
   _ProductManagementPageState createState() => _ProductManagementPageState();
 }
-
-// lib/pages/admin/product_management_page.dart
 
 class _ProductManagementPageState extends State<ProductManagementPage> {
   late Future<List<models.Document>> _productsFuture;
@@ -138,45 +106,41 @@ class _ProductManagementPageState extends State<ProductManagementPage> {
     });
   }
 
+  // --- FUNGSI NAVIGASI YANG SUDAH DIPERBAIKI ---
+
+  // Navigasi saat tombol '+' ditekan
   void _navigateToAddPage() async {
     final result = await Navigator.push(
       context, MaterialPageRoute(builder: (context) => CreateProductPage(databaseService: widget.databaseService)),
     );
-    if (result == true) _refreshProducts();
+    if (result == true && mounted) _refreshProducts();
   }
 
+  // Navigasi saat tombol 'edit' di kartu ditekan
   void _navigateToEditPage(models.Document product) async {
     final result = await Navigator.push(
       context, MaterialPageRoute(builder: (context) => EditProductPage(databaseService: widget.databaseService, product: product)),
     );
-    if (result == true) _refreshProducts();
+    if (result == true && mounted) _refreshProducts();
   }
 
-void _navigateToDetailPage(models.Document product) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ProductDetailPage(
-        databaseService: widget.databaseService,
-        product: product,
-        userRole: 'admin', // <-- KIRIM PERAN 'ADMIN' SECARA EKSPLISIT
+  // Navigasi saat kartu produk ditekan
+  void _navigateToDetailPage(models.Document product) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailPage(
+          databaseService: widget.databaseService,
+          product: product,
+          userRole: 'admin', // Kirim peran 'admin'
+        ),
       ),
-    ),
-  );
-}
-void _viewProductDetail(models.Document product) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ProductDetailPage(
-        databaseService: widget.databaseService,
-        product: product,
-        userRole: 'customer', // <-- KIRIM PERAN 'CUSTOMER'
-      ),
-    ),
-  );
-}
+    );
+    // Jika halaman detail kembali dengan 'true' (karena ada editan dari sana), refresh juga
+    if (result == true && mounted) _refreshProducts();
+  }
 
+  // Aksi saat tombol 'delete' di kartu ditekan
   void _deleteProduct(models.Document product) async {
     final bool? shouldDelete = await showDialog<bool>(
       context: context,
@@ -194,7 +158,7 @@ void _viewProductDetail(models.Document product) {
       ),
     );
 
-    if (shouldDelete == true) {
+    if (shouldDelete == true && mounted) {
       try {
         await widget.databaseService.deleteProduct(product.$id);
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Produk berhasil dihapus!'), backgroundColor: Colors.green));
@@ -205,46 +169,47 @@ void _viewProductDetail(models.Document product) {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<List<models.Document>>(
-        future: _productsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Belum ada produk. Ketuk + untuk menambah.'));
-          }
-
-          final products = snapshot.data!;
-          // --- GUNAKAN GRIDVIEW.BUILDER DI SINI ---
-          return GridView.builder(
-            padding: const EdgeInsets.all(12.0),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 2 kolom
-              crossAxisSpacing: 12.0, // Jarak horizontal antar kartu
-              mainAxisSpacing: 12.0, // Jarak vertikal antar kartu
-              childAspectRatio: 0.75, // Rasio lebar:tinggi kartu. Sesuaikan jika perlu
-            ),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return ProductCard(
-                product: product,
-                databaseService: widget.databaseService,
-                onTap: () => _navigateToDetailPage(product),
-                onEdit: () => _navigateToEditPage(product),
-                onDelete: () => _deleteProduct(product),
-              );
-            },
-          );
-        },
+      body: RefreshIndicator( // Tambahkan RefreshIndicator agar bisa refresh dengan pull-to-refresh
+        onRefresh: () async => _refreshProducts(),
+        child: FutureBuilder<List<models.Document>>(
+          future: _productsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('Belum ada produk. Ketuk + untuk menambah.'));
+            }
+      
+            final products = snapshot.data!;
+            return GridView.builder(
+              padding: const EdgeInsets.all(12.0),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12.0,
+                mainAxisSpacing: 12.0,
+                childAspectRatio: 0.75,
+              ),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return ProductCard(
+                  product: product,
+                  databaseService: widget.databaseService,
+                  onTap: () => _navigateToDetailPage(product),
+                  onEdit: () => _navigateToEditPage(product),
+                  onDelete: () => _deleteProduct(product),
+                );
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddPage,

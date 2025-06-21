@@ -7,19 +7,24 @@ class CartItem {
   final String name;
   final double price;
   int quantity;
+  final int pieces; // <-- ATRIBUT BARU
 
   CartItem({
     required this.productId,
     required this.name,
     required this.price,
-    this.quantity = 1,
+    required this.quantity,
+    required this.pieces, // <-- ATRIBUT BARU
   });
 
+  // Fungsi ini tidak lagi digunakan secara langsung, tapi bisa disimpan
   factory CartItem.fromProduct(models.Document productDoc) {
     return CartItem(
       productId: productDoc.$id,
       name: productDoc.data['name'] ?? 'Tanpa Nama',
       price: (productDoc.data['price'] ?? 0.0).toDouble(),
+      quantity: 1,
+      pieces: 4, // Default value
     );
   }
 }

@@ -44,13 +44,13 @@
 | --------------------------------------------------------------------------- | ------ |
 | 1. Buat service untuk mengambil (fetch) data dari collection products       | ✅      |
 | 2. Tampilkan daftar produk di UI dengan gambar, nama, dan harga             | ✅      |
-| 3. Implementasi state management untuk keranjang belanja (local state)      | ❌      |
-| 4. Tambahkan fungsionalitas "Tambah ke Keranjang" & "Ubah Kuantitas"        | ❌      |
-| 5. Buat halaman Keranjang Belanja untuk menampilkan ringkasan & total harga | ❌      |
+| 3. Implementasi state management untuk keranjang belanja (local state)      | ✅      |
+| 4. Tambahkan fungsionalitas "Tambah ke Keranjang" & "Ubah Kuantitas"        | ✅      |
+| 5. Buat halaman Keranjang Belanja untuk menampilkan ringkasan & total harga | ✅      |
 
 **Total task = 5**
-**Task selesai = 2**
-**Persentase progress = (2/5) × 100% = 40%**
+**Task selesai = 5**
+**Persentase progress = (5/5) × 100% = 100%**
 
 ---
 

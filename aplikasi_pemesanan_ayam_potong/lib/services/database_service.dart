@@ -2,6 +2,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models; // Penting untuk import models
 import '../utils/appwrite_constants.dart';
 import 'dart:io';
+import '../models/cart_item.dart'; // <--- TAMBAHKAN IMPORT INI
 
 class DatabaseService {
   final Databases databases;
@@ -76,13 +77,16 @@ class DatabaseService {
       final file = await storage.createFile(
         bucketId: AppwriteConstants.productsBucketId,
         fileId: ID.unique(),
-        file: InputFile.fromPath(path: imageFile.path, filename: imageFile.path.split('/').last),
+        file: InputFile.fromPath(
+          path: imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
       );
 
       // 2. Bangun URL secara manual menggunakan template yang benar
-      final imageUrl = 
-        '${AppwriteConstants.endpoint}/storage/buckets/${AppwriteConstants.productsBucketId}/files/${file.$id}/view?project=${AppwriteConstants.projectId}';
-      
+      final imageUrl =
+          '${AppwriteConstants.endpoint}/storage/buckets/${AppwriteConstants.productsBucketId}/files/${file.$id}/view?project=${AppwriteConstants.projectId}';
+
       print('Generated Image URL: $imageUrl'); // Tambahkan print untuk debug
 
       // 3. Kembalikan file ID dan URL yang sudah benar
@@ -92,6 +96,7 @@ class DatabaseService {
       rethrow;
     }
   }
+
   // Fungsi untuk menambahkan satu gambar ke sebuah produk
   Future<void> addImageToProduct(String productId, File imageFile) async {
     final imageDetails = await _uploadImage(imageFile);
@@ -108,15 +113,14 @@ class DatabaseService {
       permissions: [Permission.read(Role.any())],
     );
   }
-// FUNGSI BARU: Mendapatkan semua gambar untuk sebuah produk
+
+  // FUNGSI BARU: Mendapatkan semua gambar untuk sebuah produk
   Future<List<models.Document>> getProductImages(String productId) async {
     try {
       final result = await databases.listDocuments(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.productImagesCollectionId,
-        queries: [
-          Query.equal('productId', productId),
-        ],
+        queries: [Query.equal('productId', productId)],
       );
       return result.documents;
     } on AppwriteException catch (e) {
@@ -208,7 +212,7 @@ class DatabaseService {
     );
   }
 
-   // Modifikasi fungsi deleteProduct untuk CASCADE DELETE
+  // Modifikasi fungsi deleteProduct untuk CASCADE DELETE
   Future<void> deleteProduct(String documentId) async {
     // 1. Dapatkan semua dokumen gambar yang terhubung dengan produk ini
     final imagesToDelete = await getProductImages(documentId);
@@ -247,5 +251,47 @@ class DatabaseService {
       documentId: orderId,
       data: {'status': newStatus},
     );
+  }
+
+  // === FUNGSI CHECKOUT ===
+  Future<void> createOrderFromCart(
+    List<CartItem> cartItems,
+    double totalPrice,
+    String userId,
+  ) async {
+    // 1. Buat satu dokumen utama di collection 'orders'
+    final orderDoc = await databases.createDocument(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.ordersCollectionId,
+      documentId: ID.unique(),
+      data: {
+        'customerId': userId,
+        'totalPrice': totalPrice,
+        'status': 'pending',
+        'orderDate': DateTime.now().toIso8601String(),
+        // Kita bisa ambil 'pieces' dan 'description' dari item pertama jika seragam,
+        // atau modifikasi struktur agar bisa menyimpan info ini.
+        // Untuk saat ini, kita bisa ambil dari item pertama sebagai contoh.
+        'pieces': cartItems.isNotEmpty ? cartItems.first.pieces : 8,
+        'description':
+            'Pesanan dari aplikasi.', // Deskripsi bisa ditambahkan di halaman checkout nanti
+      },
+      permissions: [Permission.read(Role.user(userId))], // Izin untuk pemilik
+    );
+  // 2. Loop melalui setiap item di keranjang dan buat dokumen di 'order_items'
+    for (var item in cartItems) {
+      await databases.createDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.orderItemsCollectionId,
+        documentId: ID.unique(),
+        data: {
+          'orderId': orderDoc.$id,
+          'productId': item.productId,
+          'quantity': item.quantity,
+          'priceAtOrder': item.price,
+        },
+         permissions: [Permission.read(Role.user(userId))],
+      );
+    }
   }
 }

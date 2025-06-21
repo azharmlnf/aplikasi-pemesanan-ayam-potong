@@ -24,7 +24,7 @@ class CartBadge extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             ch!, // Ini adalah ikon keranjang yang kita kirim
-            if (cart.itemCount > 0)
+            if (cart.totalItemCount > 0)
               Positioned(
                 right: 8,
                 top: 8,
@@ -39,7 +39,7 @@ class CartBadge extends StatelessWidget {
                     minHeight: 16,
                   ),
                   child: Text(
-                    '${cart.itemCount}',
+                    '${cart.totalItemCount}',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 10,

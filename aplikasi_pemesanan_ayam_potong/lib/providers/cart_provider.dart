@@ -1,30 +1,23 @@
 // lib/providers/cart_provider.dart
 
 import 'package:flutter/foundation.dart';
+import 'package:appwrite/models.dart' as models;
 import '../models/cart_item.dart';
 
 class CartProvider with ChangeNotifier {
-  // Hanya ada satu properti: daftar item.
+  // Key sekarang akan menjadi kombinasi productId-pieces agar unik
   Map<String, CartItem> _items = {};
 
-  // --- CONSTRUCTOR YANG BENAR (TIDAK ADA ARGUMEN) ---
-  // Hapus constructor lama jika ada. Jika tidak ada constructor sama sekali,
-  // Dart akan secara otomatis menggunakan constructor kosong seperti ini.
-  // Jadi, Anda bisa membiarkannya kosong.
-
-  // Getter untuk mengakses data dari luar
   Map<String, CartItem> get items => {..._items};
 
-  // Getter untuk mendapatkan jumlah total item (memperhitungkan kuantitas)
-  int get itemCount {
-    int totalItems = 0;
+  int get totalItemCount {
+    int total = 0;
     _items.forEach((key, cartItem) {
-      totalItems += cartItem.quantity;
+      total += cartItem.quantity;
     });
-    return totalItems;
+    return total;
   }
 
-  // Getter untuk menghitung total harga
   double get totalAmount {
     var total = 0.0;
     _items.forEach((key, cartItem) {
@@ -33,58 +26,89 @@ class CartProvider with ChangeNotifier {
     return total;
   }
 
-  // Fungsi untuk MENAMBAH item ke keranjang
-  void addItem(CartItem item) {
-    if (_items.containsKey(item.productId)) {
+  // --- FUNGSI addItem YANG BARU ---
+  void addItem({
+    required models.Document productDoc,
+    required int quantity,
+    required int pieces,
+  }) {
+    final productId = productDoc.$id;
+    // Buat key yang unik: "idProduk-jumlahPotongan"
+    // Contoh: "ayam-broiler-123-8"
+    final cartItemKey = '$productId-$pieces';
+
+    if (_items.containsKey(cartItemKey)) {
+      // Jika item dengan produk & potongan yang sama sudah ada, update kuantitasnya
       _items.update(
-        item.productId,
-        (existingCartItem) => CartItem(
-          productId: existingCartItem.productId,
-          name: existingCartItem.name,
-          price: existingCartItem.price,
-          quantity: existingCartItem.quantity + 1,
+        cartItemKey,
+        (existingItem) => CartItem(
+          productId: existingItem.productId,
+          name: existingItem.name,
+          price: existingItem.price,
+          quantity: existingItem.quantity + quantity, // Tambah dengan kuantitas baru
+          pieces: existingItem.pieces,
         ),
       );
     } else {
+      // Jika belum ada, tambahkan sebagai item baru
       _items.putIfAbsent(
-        item.productId,
+        cartItemKey,
         () => CartItem(
-          productId: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: 1,
+          productId: productId,
+          name: productDoc.data['name'] ?? 'Tanpa Nama',
+          price: (productDoc.data['price'] ?? 0.0).toDouble(),
+          quantity: quantity,
+          pieces: pieces,
         ),
       );
     }
     notifyListeners();
   }
+  // menambah kuantitas
+  void addSingleItem(String cartItemKey) {
+    // Pastikan item ada di keranjang
+    if (!_items.containsKey(cartItemKey)) return;
 
-  // Fungsi untuk MENGURANGI kuantitas atau menghapus item
-  void removeSingleItem(String productId) {
-    if (!_items.containsKey(productId)) return;
+    // Update kuantitasnya dengan menambah 1
+    _items.update(
+      cartItemKey,
+      (existingItem) => CartItem(
+        productId: existingItem.productId,
+        name: existingItem.name,
+        price: existingItem.price,
+        quantity: existingItem.quantity + 1, // Logika utama
+        pieces: existingItem.pieces,
+      ),
+    );
+    notifyListeners();
+  }
 
-    if (_items[productId]!.quantity > 1) {
+  // Fungsi untuk MENGURANGI kuantitas (tidak banyak berubah)
+  void removeSingleItem(String cartItemKey) {
+    if (!_items.containsKey(cartItemKey)) return;
+
+    if (_items[cartItemKey]!.quantity > 1) {
       _items.update(
-        productId,
+        cartItemKey,
         (existing) => CartItem(
             productId: existing.productId,
             name: existing.name,
             price: existing.price,
-            quantity: existing.quantity - 1),
+            quantity: existing.quantity - 1,
+            pieces: existing.pieces),
       );
     } else {
-      _items.remove(productId);
+      _items.remove(cartItemKey);
     }
     notifyListeners();
   }
   
   // Fungsi untuk MENGHAPUS item sepenuhnya dari keranjang
-  void removeItem(String productId) {
-    _items.remove(productId);
+  void removeItem(String cartItemKey) {
+    _items.remove(cartItemKey);
     notifyListeners();
   }
 
-  // Fungsi untuk MEMBERSIHKAN keranjang (saat logout)
   void clear() {
     _items = {};
     notifyListeners();
