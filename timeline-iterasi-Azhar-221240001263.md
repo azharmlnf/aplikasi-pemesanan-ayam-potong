@@ -59,15 +59,15 @@
 | Task                                                                                                      | Status |
 | --------------------------------------------------------------------------------------------------------- | ------ |
 | 1. Implementasi fungsi "Checkout" dari halaman keranjang                                                  | ✅      |
-| 2. Langkah 1 Checkout: Buat dokumen baru di orders dengan status 'pending' dan totalPrice 0               | ❌      |
-| 3. Langkah 2 Checkout: Loop setiap item di keranjang & buat dokumen baru di order\_items                  | ❌      |
-| 4. Langkah 3 Checkout: Hitung total harga dari semua order\_items, lalu update field totalPrice di orders | ❌      |
-| 5. Kosongkan keranjang belanja setelah semua proses berhasil                                              | ❌      |
-| 6. Tampilkan notifikasi atau dialog bahwa pesanan berhasil dibuat                                         | ❌      |
+| 2. Langkah 1 Checkout: Buat dokumen baru di orders dengan status 'pending' dan totalPrice 0               | ✅      |
+| 3. Langkah 2 Checkout: Loop setiap item di keranjang & buat dokumen baru di order\_items                  | ✅      |
+| 4. Langkah 3 Checkout: Hitung total harga dari semua order\_items, lalu update field totalPrice di orders | ✅      |
+| 5. Kosongkan keranjang belanja setelah semua proses berhasil                                              | ✅      |
+| 6. Tampilkan notifikasi atau dialog bahwa pesanan berhasil dibuat                                         | ✅      |
 
 **Total task = 6**
-**Task selesai = 5**
-**Persentase progress = (1/6) × 100% = 0%**
+**Task selesai = 6**
+**Persentase progress = (6/6) × 100% = 100%**
 
 ---
 
