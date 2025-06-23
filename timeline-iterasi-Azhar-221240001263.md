@@ -75,9 +75,9 @@
 
 | Task                                                                                     | Status |
 | ---------------------------------------------------------------------------------------- | ------ |
-| 1. Buat halaman daftar pesanan masuk untuk Admin, tampilkan orderId, totalPrice, status  | ❌      |
-| 2. Buat halaman detail pesanan Admin: tampilkan detail order\_items (produk, qty, harga) | ❌      |
-| 3. Implementasi fungsi untuk mengubah status pesanan (pending -> processed) pada Admin   | ❌      |
+| 1. Buat halaman daftar pesanan masuk untuk Admin, tampilkan orderId, totalPrice, status  | ✅      |
+| 2. Buat halaman detail pesanan Admin: tampilkan detail order\_items (produk, qty, harga) | ✅      |
+| 3. Implementasi fungsi untuk mengubah status pesanan (pending -> processed) pada Admin   | ✅      |
 | 4. Buat halaman "Riwayat Pesanan Saya" untuk Customer                                    | ❌      |
 | 5. Ambil dan tampilkan data pesanan milik Customer yang sedang login                     | ❌      |
 

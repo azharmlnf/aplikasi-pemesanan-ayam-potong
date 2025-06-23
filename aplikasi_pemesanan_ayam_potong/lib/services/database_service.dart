@@ -53,6 +53,8 @@ class DatabaseService {
   }
 
   //menampilkan user yang login
+  // Fungsi ini mengambil satu profil berdasarkan ID
+  // Kita akan gunakan ini untuk mendapatkan nama customer
   Future<models.Document?> getProfile(String userId) async {
     try {
       return await databases.getDocument(
@@ -61,10 +63,7 @@ class DatabaseService {
         documentId: userId,
       );
     } on AppwriteException catch (e) {
-      // Jika profil tidak ditemukan, kembalikan null
-      if (e.code == 404) {
-        return null;
-      }
+      if (e.code == 404) return null;
       print('Gagal mendapatkan profil: ${e.message}');
       rethrow;
     }
@@ -151,6 +150,9 @@ class DatabaseService {
 
   // --- FUNGSI UTAMA UNTUK PRODUK (YANG MEMANGGIL FUNGSI DI ATAS) ---
 
+
+
+  //memanggil semua products
   Future<List<models.Document>> getProducts() async {
     final result = await databases.listDocuments(
       databaseId: AppwriteConstants.databaseId,
@@ -232,77 +234,108 @@ class DatabaseService {
   }
   // === FUNGSI MANAJEMEN PESANAN ===
 
+  // Fungsi ini mengambil SEMUA pesanan, cocok untuk Admin
   Future<List<models.Document>> getOrders() async {
-    final result = await databases.listDocuments(
-      databaseId: AppwriteConstants.databaseId,
-      collectionId: AppwriteConstants.ordersCollectionId, // DIGANTI
-      queries: [Query.orderDesc('orderDate')],
-    );
-    return result.documents;
-  }
-
-  Future<models.Document> updateOrderStatus(
-    String orderId,
-    String newStatus,
-  ) async {
-    return databases.updateDocument(
-      databaseId: AppwriteConstants.databaseId,
-      collectionId: AppwriteConstants.ordersCollectionId, // DIGANTI
-      documentId: orderId,
-      data: {'status': newStatus},
-    );
+    try {
+      final result = await databases.listDocuments(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.ordersCollectionId,
+        queries: [
+          // Tampilkan pesanan terbaru di paling atas
+          Query.orderDesc('\$createdAt'),
+        ],
+      );
+      return result.documents;
+    } catch (e) {
+      print("Gagal mendapatkan pesanan: $e");
+      return [];
+    }
   }
 
   // ==============================
   // === FUNGSI CHECKOUT (BARU) ===
   // ==============================
-Future<void> createOrderFromCart({
-  required String userId,
-  required List<CartItem> cartItems,
-  required double totalPrice,
-  String? description,
-}) async {
-  // 1. Buat dokumen induk di 'orders' (tanpa 'pieces')
-  final orderDoc = await databases.createDocument(
-    databaseId: AppwriteConstants.databaseId,
-    collectionId: AppwriteConstants.ordersCollectionId,
-    documentId: ID.unique(),
-    data: {
-      'customerId': userId,
-      'totalPrice': totalPrice,
-      'status': 'pending',
-      'orderDate': DateTime.now().toIso8601String(),
-      'description': description,
-    },
-    permissions: [
-      Permission.read(Role.user(userId)),
-      Permission.update(Role.user(userId)),
-      Permission.delete(Role.user(userId)),
-      Permission.read(Role.users()),
-      Permission.update(Role.users()),
-    ],
-  );
-
-  final orderId = orderDoc.$id;
-
-  // 2. Buat dokumen detail di 'order_items' (DENGAN 'pieces')
-  for (var item in cartItems) {
-    await databases.createDocument(
+  Future<void> createOrderFromCart({
+    required String userId,
+    required List<CartItem> cartItems,
+    required double totalPrice,
+    String? description,
+  }) async {
+    // 1. Buat dokumen induk di 'orders' (tanpa 'pieces')
+    final orderDoc = await databases.createDocument(
       databaseId: AppwriteConstants.databaseId,
-      collectionId: AppwriteConstants.orderItemsCollectionId,
+      collectionId: AppwriteConstants.ordersCollectionId,
       documentId: ID.unique(),
       data: {
-        'orderId': orderId,
-        'productId': item.productId,
-        'quantity': item.quantity,
-        'priceAtOrder': item.price,
-        'pieces': item.pieces, // <-- PASTIKAN BARIS INI ADA
+        'customerId': userId,
+        'totalPrice': totalPrice,
+        'status': 'pending',
+        'orderDate': DateTime.now().toIso8601String(),
+        'description': description,
       },
       permissions: [
         Permission.read(Role.user(userId)),
+        Permission.update(Role.user(userId)),
+        Permission.delete(Role.user(userId)),
         Permission.read(Role.users()),
+        Permission.update(Role.users()),
       ],
     );
+
+    final orderId = orderDoc.$id;
+
+    // 2. Buat dokumen detail di 'order_items' (DENGAN 'pieces')
+    for (var item in cartItems) {
+      await databases.createDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.orderItemsCollectionId,
+        documentId: ID.unique(),
+        data: {
+          'orderId': orderId,
+          'productId': item.productId,
+          'quantity': item.quantity,
+          'priceAtOrder': item.price,
+          'pieces': item.pieces, // <-- PASTIKAN BARIS INI ADA
+        },
+        permissions: [
+          Permission.read(Role.user(userId)),
+          Permission.read(Role.users()),
+        ],
+      );
+    }
   }
-}
+
+   // <<< FUNGSI BARU UNTUK MENGAMBIL DETAIL ITEM PESANAN >>>
+  Future<List<models.Document>> getOrderItems(String orderId) async {
+    try {
+      final result = await databases.listDocuments(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.orderItemsCollectionId,
+        queries: [
+          Query.equal('orderId', orderId), // Filter item berdasarkan ID pesanan
+        ],
+      );
+      return result.documents;
+    } catch (e) {
+      print("Gagal mendapatkan item pesanan: $e");
+      return [];
+    }
+  }
+
+  // FUNGSI UNTUK MENGUBAH STATUS PESANAN
+  Future<models.Document> updateOrderStatus(String orderId, String newStatus) async {
+    try {
+      return await databases.updateDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.ordersCollectionId,
+        documentId: orderId,
+        data: {
+          'status': newStatus, // Hanya kirim data yang ingin diubah
+        },
+      );
+    } catch (e) {
+      print("Gagal mengubah status pesanan: $e");
+      rethrow;
+    }
+  }
 }
