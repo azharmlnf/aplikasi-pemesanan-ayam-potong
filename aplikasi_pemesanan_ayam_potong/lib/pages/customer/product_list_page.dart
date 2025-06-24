@@ -8,14 +8,17 @@ import '../common/product_detail_page.dart';
 
 class CustomerProductListPage extends StatefulWidget {
   final DatabaseService databaseService;
-   final AuthService authService; // <-- TAMBAHKAN INI
+  final AuthService authService; // <-- TAMBAHKAN INI
   final String userRole;
+   final VoidCallback onNavigateToCart; // <-- TAMBAHKAN INI
 
   const CustomerProductListPage({
     Key? key,
     required this.databaseService,
-        required this.authService, // <-- TAMBAHKAN DI CONSTRUCTOR
+    required this.authService, // <-- TAMBAHKAN DI CONSTRUCTOR
     required this.userRole,
+    required this.onNavigateToCart, // <-- JADIKAN WAJIB
+ 
   }) : super(key: key);
 
   @override
@@ -37,7 +40,7 @@ class _CustomerProductListPageState extends State<CustomerProductListPage> {
     });
   }
 
-  void _navigateToDetailPage(models.Document product) {
+    void _navigateToDetailPage(models.Document product) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -45,7 +48,9 @@ class _CustomerProductListPageState extends State<CustomerProductListPage> {
           databaseService: widget.databaseService,
           product: product,
           userRole: widget.userRole,
-           authService: widget.authService, // <-- KIRIMKAN AUTHSERVICE DI SINI
+          authService: widget.authService,
+          // --- KIRIM CALLBACK LEBIH JAUH ---
+          onNavigateToCart: widget.onNavigateToCart, 
         ),
       ),
     );

@@ -7,7 +7,8 @@ import '../../services/database_service.dart';
 import '../common/profile_page.dart';
 import 'product_list_page.dart';
 import '../../widgets/cart_badge.dart'; // <-- 1. IMPORT WIDGET BADGE
-import 'cart_page.dart';              // <-- 2. IMPORT HALAMAN KERANJANG
+import 'cart_page.dart'; // <-- 2. IMPORT HALAMAN KERANJANG
+import 'my_orders_page.dart'; // <-- IMPORT HALAMAN BARU
 
 class CustomerDashboardPage extends StatefulWidget {
   final AuthService authService;
@@ -28,20 +29,29 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
   models.Document? _userProfile;
 
   late final List<Widget> _pages;
+  // --- TAMBAHKAN GLOBALKEY UNTUK MyOrdersPage ---
+  final GlobalKey<MyOrdersPageState> _myOrdersPageKey =
+      GlobalKey<MyOrdersPageState>();
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
 
-    // Halaman untuk customer
     _pages = [
       CustomerProductListPage(
         databaseService: widget.databaseService,
-                authService: widget.authService, // <-- KIRIMKAN DI SINI
+        authService: widget.authService,
         userRole: 'customer',
+        // --- TAMBAHKAN CALLBACK INI ---
+        // Kirim fungsi _navigateToCart sebagai parameter
+        onNavigateToCart: _navigateToCart, 
       ),
-      const Center(child: Text('Halaman Riwayat Pesanan')), // Placeholder
+      MyOrdersPage(
+        key: _myOrdersPageKey,
+        authService: widget.authService,
+        databaseService: widget.databaseService,
+      ),
       ProfilePage(authService: widget.authService, userProfile: _userProfile),
     ];
   }
@@ -68,21 +78,10 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
 
   final List<String> _pageTitles = ['Beranda', 'Pesanan Saya', 'Profil Saya'];
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_pageTitles[_selectedIndex]),
-        // --- BAGIAN YANG DIPERBARUI ---
-        actions: <Widget>[
-          // Tampilkan ikon keranjang hanya jika kita tidak berada di halaman profil
-          if (_selectedIndex != 2)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0), // Beri sedikit jarak dari tepi
-              child: CartBadge(
-                onTap: () {
-    // Gunakan MaterialPageRoute dan kirim service yang dibutuhkan
-    Navigator.of(context).push(
+  // --- FUNGSI BARU UNTUK NAVIGASI KE KERANJANG & REFRESH ---
+  void _navigateToCart() async {
+    // Navigasi ke halaman keranjang dan TUNGGU hasilnya
+    final bool? orderCreated = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (ctx) => CartPage(
           authService: widget.authService,
@@ -90,16 +89,38 @@ class _CustomerDashboardPageState extends State<CustomerDashboardPage> {
         ),
       ),
     );
-  },
-  child: const IconButton(
-    icon: Icon(Icons.shopping_cart_outlined),
-    tooltip: 'Keranjang Belanja',
-    onPressed: null,
-  ),
+
+    // Jika pesanan berhasil dibuat (CartPage mengembalikan true)
+    if (orderCreated == true && mounted) {
+      // 1. Pindah ke tab "Pesanan Saya"
+      setState(() {
+        _selectedIndex = 1;
+      });
+      // 2. Panggil fungsi refresh di MyOrdersPage melalui GlobalKey
+      _myOrdersPageKey.currentState?.loadMyOrders();
+    }
+  }
+
+   @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_pageTitles[_selectedIndex]),
+        actions: <Widget>[
+          if (_selectedIndex != 2)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: CartBadge(
+                // Panggil fungsi navigasi yang baru
+                onTap: _navigateToCart, 
+                child: const IconButton(
+                  icon: Icon(Icons.shopping_cart_outlined),
+                  tooltip: 'Keranjang Belanja',
+                  onPressed: null,
+                ),
               ),
             ),
         ],
-        // --- AKHIR BAGIAN YANG DIPERBARUI ---
       ),
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(

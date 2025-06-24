@@ -338,4 +338,33 @@ class DatabaseService {
       rethrow;
     }
   }
+  // <<< FUNGSI BARU UNTUK AKSI MASSAL mengubah pesanan >>>
+  Future<void> bulkUpdateOrderStatus(List<String> orderIds, String newStatus) async {
+    // Appwrite tidak punya fitur update banyak dokumen sekaligus, jadi kita loop
+    // Gunakan Future.wait untuk menjalankan semua permintaan secara paralel
+    await Future.wait(
+      orderIds.map((id) => updateOrderStatus(id, newStatus)),
+    );
+  }
+
+   // <<< FUNGSI BARU UNTUK RIWAYAT PESANAN CUSTOMER >>>
+  Future<List<models.Document>> getMyOrders(String userId) async {
+    try {
+      final result = await databases.listDocuments(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.ordersCollectionId,
+        queries: [
+          // Filter hanya pesanan di mana 'customerId' sama dengan ID user yang login
+          Query.equal('customerId', userId),
+          // Tampilkan yang terbaru di atas
+          Query.orderDesc('\$createdAt'),
+        ],
+      );
+      return result.documents;
+    } catch (e) {
+      print("Gagal mendapatkan riwayat pesanan: $e");
+      return [];
+    }
+  }
+
 }

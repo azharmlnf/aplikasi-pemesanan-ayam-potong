@@ -15,14 +15,16 @@ class ProductDetailPage extends StatefulWidget {
   final models.Document product;
   final DatabaseService databaseService;
   final String userRole;
-   final AuthService authService; // <<< TAMBAHKAN PARAMETER INI
-
+  final AuthService authService; // <<< TAMBAHKAN PARAMETER INI
+  final VoidCallback? onNavigateToCart; // <-- JADIKAN OPSIONA
+  
   const ProductDetailPage({
     Key? key,
     required this.product,
     required this.databaseService,
     required this.userRole,
-        required this.authService, // <<< JADIKAN WAJIB
+    required this.authService, // <<< JADIKAN WAJIB
+        this.onNavigateToCart, // <-- TAMBAHKAN DI CONSTRUCTOR
   }) : super(key: key);
 
   @override
@@ -96,7 +98,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         pieces: pieces,
       );
 
-      // Tampilkan SnackBar menggunakan context dari ProductDetailPage yang valid
+     // Tampilkan SnackBar
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -106,20 +108,20 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             label: 'LIHAT',
             textColor: Colors.amber,
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (ctx) => CartPage(
-                    // Ambil service dari widget ProductDetailPage
-                    authService: widget.authService,
-                    databaseService: widget.databaseService,
-                  ),
-                ),
-              );
+              // --- PERBAIKI LOGIKA DI SINI ---
+              // Jika ada callback yang diberikan, panggil itu.
+              if (widget.onNavigateToCart != null) {
+                widget.onNavigateToCart!();
+              } else {
+                // Fallback jika dipanggil dari tempat lain (misal: admin)
+                Navigator.pushNamed(context, '/cart');
+              }
             },
           ),
         ),
       );
     }
+  
   }
 
   @override

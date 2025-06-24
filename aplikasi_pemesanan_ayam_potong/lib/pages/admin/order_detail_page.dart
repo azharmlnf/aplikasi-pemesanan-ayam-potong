@@ -3,17 +3,20 @@
 import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
 import '../../services/database_service.dart';
-
+import '../../services/auth_service.dart'; 
 class OrderDetailPage extends StatefulWidget {
   final models.Document order;
   final String customerName;
   final DatabaseService databaseService;
+   final AuthService authService; // <<< 2. TAMBAHKAN PARAMETER INI
+
 
   const OrderDetailPage({
     Key? key,
     required this.order,
     required this.customerName,
     required this.databaseService,
+    required this.authService, // <<< 3. JADIKAN WAJIB
   }) : super(key: key);
 
   @override

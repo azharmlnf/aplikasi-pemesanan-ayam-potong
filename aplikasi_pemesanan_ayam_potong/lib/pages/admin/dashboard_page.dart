@@ -38,8 +38,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     // Inisialisasi halaman dengan data awal (kosong/placeholder)
     _pages = [
       ProductManagementPage(databaseService: widget.databaseService, userRole: '', authService: widget.authService, ), // Role awal kosong
-      OrderManagementPage(databaseService: widget.databaseService),
-      ProfilePage(authService: widget.authService, userProfile: null),
+OrderManagementPage(
+        databaseService: widget.databaseService,
+        authService: widget.authService,
+      ),      ProfilePage(authService: widget.authService, userProfile: null),
     ];
     // Panggil fungsi untuk memuat data
     _loadUserProfile();

@@ -51,7 +51,8 @@ class _CartPageState extends State<CartPage> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pesanan berhasil dibuat!'), backgroundColor: Colors.green));
-        Navigator.of(context).pop();
+        // --- KIRIM 'true' SAAT KEMBALI ---
+        Navigator.of(context).pop(true); 
       }
     } on AppwriteException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal membuat pesanan: ${e.message}'), backgroundColor: Colors.red));
