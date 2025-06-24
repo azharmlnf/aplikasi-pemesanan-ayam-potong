@@ -10,6 +10,37 @@ class CartProvider with ChangeNotifier {
 
   Map<String, CartItem> get items => {..._items};
 
+
+  // <<< 1. TAMBAHKAN VARIABEL STATE BARU DI SINI >>>
+  bool _requiresProductRefresh = false;
+
+  // <<< 2. TAMBAHKAN GETTER UNTUK MENGAKSESNYA DARI LUAR >>>
+  bool get requiresProductRefresh => _requiresProductRefresh;
+
+// --- STATE BARU UNTUK NOTIFIKASI ---
+  bool _orderJustPlaced = false;
+  // Getter untuk state baru
+  bool get orderJustPlaced => _orderJustPlaced;
+
+  // Fungsi untuk menandai bahwa pesanan baru saja dibuat
+  void setOrderPlaced() {
+    _orderJustPlaced = true;
+    notifyListeners(); // Beri tahu pendengar bahwa ada perubahan
+  }
+
+   // Fungsi untuk menandai bahwa refresh diperlukan
+  void setRequiresRefresh(bool value) {
+    _requiresProductRefresh = value;
+    // Kita tidak memanggil notifyListeners() di sini agar tidak menyebabkan rebuild yang tidak perlu
+  }
+
+
+  // Fungsi untuk me-reset penanda setelah UI di-refresh
+  void resetOrderPlacedStatus() {
+    _orderJustPlaced = false;
+    // Kita tidak perlu notifyListeners di sini karena ini dipanggil setelah refresh
+  }
+
   int get totalItemCount {
     int total = 0;
     _items.forEach((key, cartItem) {
@@ -111,6 +142,10 @@ class CartProvider with ChangeNotifier {
 
   void clear() {
     _items = {};
+    // Saat keranjang dibersihkan (setelah checkout berhasil),
+    // tandai bahwa refresh diperlukan
+    setRequiresRefresh(true); 
+    // notifyListeners() akan mengirim sinyal ke semua pendengar
     notifyListeners();
   }
 }

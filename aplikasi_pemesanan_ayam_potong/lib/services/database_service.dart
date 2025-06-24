@@ -236,7 +236,7 @@ class DatabaseService {
 
 
   // ==============================
-  // === FUNGSI CHECKOUT (BARU) ===
+  // === FUNGSI CHECKOUT (DENGAN PENGURANGAN STOK) ===
   // ==============================
   Future<void> createOrderFromCart({
     required String userId,
@@ -244,7 +244,19 @@ class DatabaseService {
     required double totalPrice,
     String? description,
   }) async {
-    // 1. Buat dokumen induk di 'orders' (tanpa 'pieces')
+    // --- Langkah A: Validasi Stok Sebelum Membuat Pesanan ---
+    for (var item in cartItems) {
+      final productDoc = await getProductById(item.productId);
+      final currentStock = productDoc.data['stock'] as int;
+      if (currentStock < item.quantity) {
+        // Jika stok tidak cukup, lempar error dan hentikan proses
+        throw Exception('Stok untuk produk "${item.name}" tidak mencukupi. Sisa: $currentStock');
+      }
+    }
+
+    // Jika semua stok aman, lanjutkan proses checkout...
+
+    // 1. Buat DOKUMEN INDUK di collection 'orders'
     final orderDoc = await databases.createDocument(
       databaseId: AppwriteConstants.databaseId,
       collectionId: AppwriteConstants.ordersCollectionId,
@@ -265,10 +277,11 @@ class DatabaseService {
       ],
     );
 
-    final orderId = orderDoc.$id;
+final orderId = orderDoc.$id;
 
-    // 2. Buat dokumen detail di 'order_items' (DENGAN 'pieces')
+    // 2. Loop, buat DOKUMEN DETAIL di 'order_items' DAN update stok
     for (var item in cartItems) {
+      // Buat dokumen order_items
       await databases.createDocument(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.orderItemsCollectionId,
@@ -285,8 +298,25 @@ class DatabaseService {
           Permission.read(Role.users()),
         ],
       );
+      // --- Langkah B: Kurangi Stok Produk ---
+      try {
+        // Ambil stok terbaru lagi untuk keamanan (jika ada pesanan lain masuk bersamaan)
+        final productDoc = await getProductById(item.productId);
+        final currentStock = productDoc.data['stock'] as int;
+        final newStock = currentStock - item.quantity;
+        
+        // Update stok di database
+        await _updateProductStock(item.productId, newStock);
+
+      } catch (e) {
+        // Jika gagal mengurangi stok, ini adalah masalah.
+        // Kita bisa menambahkan logika kompensasi (misal: membatalkan pesanan yang baru dibuat)
+        // atau cukup log error untuk diperiksa manual.
+        print("PENTING: Gagal mengurangi stok untuk produk ${item.productId} pada pesanan $orderId. Error: $e");
+      }
     }
   }
+    
 
    // <<< FUNGSI BARU UNTUK MENGAMBIL DETAIL ITEM PESANAN >>>
   Future<List<models.Document>> getOrderItems(String orderId) async {
@@ -386,6 +416,36 @@ class DatabaseService {
   }
   
 
+  // === FUNGSI PEMBANTU UNTUK STOK (BARU) ===
+
+  // Fungsi untuk mendapatkan satu dokumen produk berdasarkan ID
+  Future<models.Document> getProductById(String productId) async {
+    return databases.getDocument(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.productsCollectionId,
+      documentId: productId,
+    );
+  }
+
+// Fungsi untuk meng-update stok satu produk
+Future<void> _updateProductStock(String productId, int newStock) async {
+  // Tambahkan print statement untuk debugging
+  print('Updating stock for product $productId to new value: $newStock');
   
+  try {
+    await databases.updateDocument(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.productsCollectionId,
+      documentId: productId,
+      data: {
+        'stock': newStock, // Pastikan key 'stock' sudah benar (huruf kecil semua)
+      },
+    );
+    print('Stock for product $productId updated successfully.');
+  } on AppwriteException catch (e) {
+    // Jika ada error izin, ini akan tercetak di debug console
+    print('AppwriteException while updating stock: ${e.message}');
+  }
+}
 
 }

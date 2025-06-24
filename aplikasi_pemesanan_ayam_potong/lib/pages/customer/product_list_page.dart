@@ -1,24 +1,26 @@
 // lib/pages/customer/product_list_page.dart
 
-import 'package:app_pemesanan_ayam_potong/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
+import 'package:provider/provider.dart';
+import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
+import '../../providers/cart_provider.dart';
 import '../common/product_detail_page.dart';
 
 class CustomerProductListPage extends StatefulWidget {
   final DatabaseService databaseService;
-  final AuthService authService; // <-- TAMBAHKAN INI
+  final AuthService authService;
   final String userRole;
-   final VoidCallback onNavigateToCart; // <-- TAMBAHKAN INI
+  // Callback untuk navigasi terpusat
+  final VoidCallback onNavigateToCart; 
 
   const CustomerProductListPage({
     Key? key,
     required this.databaseService,
-    required this.authService, // <-- TAMBAHKAN DI CONSTRUCTOR
+    required this.authService,
     required this.userRole,
-    required this.onNavigateToCart, // <-- JADIKAN WAJIB
- 
+    required this.onNavigateToCart,
   }) : super(key: key);
 
   @override
@@ -27,20 +29,49 @@ class CustomerProductListPage extends StatefulWidget {
 
 class _CustomerProductListPageState extends State<CustomerProductListPage> {
   late Future<List<models.Document>> _productsFuture;
+  late CartProvider _cartProvider; // Variabel untuk menyimpan provider
 
   @override
   void initState() {
     super.initState();
+    // Ambil instance CartProvider sekali saja
+    _cartProvider = Provider.of<CartProvider>(context, listen: false);
+    // Daftarkan listener untuk mendengarkan sinyal refresh
+    _cartProvider.addListener(_checkAndPerformRefresh);
+    // Muat produk pertama kali
     _refreshProducts();
   }
 
-  void _refreshProducts() {
-    setState(() {
-      _productsFuture = widget.databaseService.getProducts();
-    });
+  @override
+  void dispose() {
+    // Selalu hapus listener saat widget dihancurkan untuk mencegah memory leak
+    _cartProvider.removeListener(_checkAndPerformRefresh);
+    super.dispose();
   }
 
-    void _navigateToDetailPage(models.Document product) {
+  // Fungsi untuk memuat ulang data produk
+  void _refreshProducts() {
+    if (mounted) {
+      setState(() {
+        _productsFuture = widget.databaseService.getProducts();
+      });
+    }
+  }
+
+  // Fungsi yang akan dipicu oleh provider saat ada sinyal refresh
+  void _checkAndPerformRefresh() {
+    if (_cartProvider.requiresProductRefresh) {
+      print("Sinyal refresh stok diterima, memuat ulang daftar produk...");
+      _refreshProducts();
+      // Reset sinyalnya agar tidak me-refresh terus-menerus
+      _cartProvider.setRequiresRefresh(false);
+    }
+  }
+
+  // Fungsi untuk navigasi ke halaman detail
+  void _navigateToDetailPage(models.Document product) async {
+    // Kita tidak perlu menunggu hasil (await) di sini lagi karena
+    // listener akan menangani refresh secara otomatis saat kita kembali.
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -49,7 +80,7 @@ class _CustomerProductListPageState extends State<CustomerProductListPage> {
           product: product,
           userRole: widget.userRole,
           authService: widget.authService,
-          // --- KIRIM CALLBACK LEBIH JAUH ---
+          // Teruskan callback navigasi keranjang
           onNavigateToCart: widget.onNavigateToCart, 
         ),
       ),
@@ -81,12 +112,11 @@ class _CustomerProductListPageState extends State<CustomerProductListPage> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12.0,
                 mainAxisSpacing: 12.0,
-                childAspectRatio: 0.8, // Sedikit lebih tinggi untuk tampilan katalog
+                childAspectRatio: 0.8,
               ),
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final product = products[index];
-                // Menggunakan widget kartu produk yang dibuat di bawah
                 return _ProductCatalogCard(
                   product: product,
                   databaseService: widget.databaseService,
@@ -100,7 +130,6 @@ class _CustomerProductListPageState extends State<CustomerProductListPage> {
     );
   }
 }
-
 // Widget terpisah untuk kartu produk di katalog customer
 class _ProductCatalogCard extends StatelessWidget {
   final models.Document product;

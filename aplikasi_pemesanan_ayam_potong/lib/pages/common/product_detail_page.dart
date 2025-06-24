@@ -1,5 +1,4 @@
 // lib/pages/common/product_detail_page.dart
-// lib/pages/common/product_detail_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
@@ -17,14 +16,14 @@ class ProductDetailPage extends StatefulWidget {
   final String userRole;
   final AuthService authService; // <<< TAMBAHKAN PARAMETER INI
   final VoidCallback? onNavigateToCart; // <-- JADIKAN OPSIONA
-  
+
   const ProductDetailPage({
     Key? key,
     required this.product,
     required this.databaseService,
     required this.userRole,
     required this.authService, // <<< JADIKAN WAJIB
-        this.onNavigateToCart, // <-- TAMBAHKAN DI CONSTRUCTOR
+    this.onNavigateToCart, // <-- TAMBAHKAN DI CONSTRUCTOR
   }) : super(key: key);
 
   @override
@@ -72,13 +71,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   // --- FUNGSI UNTUK MENAMPILKAN FORM DI BOTTOMSHEET (DIPERBAIKI) ---
   void _showAddToCartForm() async {
-    // --- UBAH TIPE DATA DI SINI ---
-    // Ganti Map<String, int> menjadi Map<String, int?>
+    // Ambil stok dari data produk
+    final int currentStock = widget.product.data['stock'] ?? 0;
+
     final result = await showModalBottomSheet<Map<String, int?>>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) {
-        return AddToCartForm(pieceOptions: const [1, 2, 4, 6, 8]);
+        // Kirim stok ke dalam form
+        return AddToCartForm(
+          pieceOptions: const [1, 2, 4, 6, 8],
+          currentStock: currentStock, // <-- KIRIM STOK DI SINI
+        );
       },
     );
 
@@ -98,7 +102,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         pieces: pieces,
       );
 
-     // Tampilkan SnackBar
+      // Tampilkan SnackBar
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -121,7 +125,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ),
       );
     }
-  
   }
 
   @override
@@ -326,111 +329,111 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 // --- WIDGET BARU & TERPISAH UNTUK FORM DI BOTTOM SHEET ---
 class AddToCartForm extends StatefulWidget {
   final List<int> pieceOptions;
-  const AddToCartForm({Key? key, required this.pieceOptions}) : super(key: key);
+  final int currentStock; // <-- Terima stok
+
+  const AddToCartForm({
+    Key? key,
+    required this.pieceOptions,
+    required this.currentStock, // <-- Jadikan wajib
+  }) : super(key: key);
 
   @override
   _AddToCartFormState createState() => _AddToCartFormState();
 }
 
 class _AddToCartFormState extends State<AddToCartForm> {
-  final _formKey = GlobalKey<FormState>(); // Tambahkan GlobalKey untuk validasi
+  final _formKey = GlobalKey<FormState>();
   int _quantity = 1;
   int? _selectedPieces;
 
-  void _submitForm() {
-    // Jalankan validasi pada Dropdown
+void _submitForm() {
+    // Sembunyikan keyboard jika terbuka
+    FocusScope.of(context).unfocus();
+
+    // --- LOGIKA VALIDASI TERPUSAT ---
+
+    // 1. Validasi Stok terlebih dahulu
+    if (widget.currentStock < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maaf, stok produk ini sudah habis.'), backgroundColor: Colors.red),
+      );
+      return; // Hentikan proses
+    }
+    
+    if (_quantity > widget.currentStock) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Stok tidak mencukupi. Sisa stok: ${widget.currentStock}'), backgroundColor: Colors.red),
+      );
+      return; // Hentikan proses
+    }
+
+    // 2. Validasi Form (Dropdown Potongan)
     if (!_formKey.currentState!.validate()) {
-      // Jika tidak valid (null), validasi akan otomatis menampilkan pesan error
+      // Validator di DropdownButtonFormField akan otomatis menampilkan pesan
       return;
     }
-    // Jika valid, kembalikan data
+
+    // Jika semua validasi lolos, kembalikan data
     Navigator.pop(context, {'quantity': _quantity, 'pieces': _selectedPieces});
   }
 
   @override
   Widget build(BuildContext context) {
+    // Tentukan apakah produk habis
+    final bool isOutOfStock = widget.currentStock < 1;
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 20,
-        right: 20,
-        top: 20,
+        left: 20, right: 20, top: 20,
       ),
-      // Bungkus dengan Form agar bisa menggunakan validator
       child: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              "Atur Pesanan",
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text("Atur Pesanan", style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Jumlah:", style: TextStyle(fontSize: 16)),
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle),
-                      onPressed: () {
-                        if (_quantity > 1) setState(() => _quantity--);
-                      },
-                    ),
+                    const Text("Jumlah:", style: TextStyle(fontSize: 16)),
                     Text(
-                      "$_quantity",
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle),
-                      onPressed: () => setState(() => _quantity++),
+                      isOutOfStock ? "Stok Habis" : "Stok: ${widget.currentStock}",
+                      style: TextStyle(fontSize: 12, color: isOutOfStock ? Colors.red : Colors.grey),
                     ),
                   ],
                 ),
+                Row(
+                  children: [
+                    IconButton(icon: const Icon(Icons.remove_circle), onPressed: () { if (_quantity > 1) setState(() => _quantity--); }),
+                    Text("$_quantity", style: Theme.of(context).textTheme.titleLarge),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle),
+                      onPressed: isOutOfStock || _quantity >= widget.currentStock ? null : () => setState(() => _quantity++),
+                    ),
+                  ],
+                )
               ],
             ),
             const SizedBox(height: 10),
-            // --- DROPDOWN YANG DIPERBAIKI DENGAN VALIDATOR ---
             DropdownButtonFormField<int>(
               value: _selectedPieces,
               hint: const Text("Pilih Jumlah Potongan"),
-              decoration: const InputDecoration(
-                labelText: 'Dipotong Menjadi',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 16,
-                ),
-              ),
-              items: widget.pieceOptions
-                  .map(
-                    (pieces) => DropdownMenuItem(
-                      value: pieces,
-                      child: Text(
-                        pieces == 1
-                            ? '1 (Utuh Tidak Dipotong)'
-                            : '$pieces bagian',
-                      ),
-                    ),
-                  )
-                  .toList(),
+              decoration: const InputDecoration(labelText: 'Dipotong Menjadi', border: OutlineInputBorder()),
+              items: widget.pieceOptions.map((p) => DropdownMenuItem(value: p, child: Text(p == 1 ? 'Utuh' : '$p bagian'))).toList(),
               onChanged: (value) => setState(() => _selectedPieces = value),
-              // Validator akan menampilkan pesan error di bawah field jika null
-              validator: (value) {
-                if (value == null) {
-                  return 'Harap pilih jumlah potongan.';
-                }
-                return null;
-              },
+              validator: (value) => value == null ? 'Harap pilih jumlah potongan.' : null,
             ),
             const SizedBox(height: 20),
-            // --- TOMBOL KONFIRMASI YANG DIPERBAIKI ---
             ElevatedButton(
               child: const Text('Konfirmasi'),
-              onPressed: _submitForm, // Panggil fungsi submit
+              // Tombol selalu aktif, validasi dipindah ke dalam _submitForm
+              onPressed: _submitForm, 
             ),
             const SizedBox(height: 20),
           ],

@@ -55,9 +55,22 @@ class _CartPageState extends State<CartPage> {
         Navigator.of(context).pop(true); 
       }
     } on AppwriteException catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal membuat pesanan: ${e.message}'), backgroundColor: Colors.red));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuat pesanan: ${e.message}'), backgroundColor: Colors.red)
+        );
+      }
+    } catch (e) { // --- TAMBAHKAN BLOK INI ---
+      // Tangani error umum, termasuk error stok tidak cukup dari Exception
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: $e'), backgroundColor: Colors.red)
+        );
+      }
     } finally {
-      if (mounted) setState(() => _isProcessing = false);
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
   
