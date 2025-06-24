@@ -232,25 +232,8 @@ class DatabaseService {
       documentId: documentId,
     );
   }
-  // === FUNGSI MANAJEMEN PESANAN ===
 
-  // Fungsi ini mengambil SEMUA pesanan, cocok untuk Admin
-  Future<List<models.Document>> getOrders() async {
-    try {
-      final result = await databases.listDocuments(
-        databaseId: AppwriteConstants.databaseId,
-        collectionId: AppwriteConstants.ordersCollectionId,
-        queries: [
-          // Tampilkan pesanan terbaru di paling atas
-          Query.orderDesc('\$createdAt'),
-        ],
-      );
-      return result.documents;
-    } catch (e) {
-      print("Gagal mendapatkan pesanan: $e");
-      return [];
-    }
-  }
+
 
   // ==============================
   // === FUNGSI CHECKOUT (BARU) ===
@@ -347,18 +330,53 @@ class DatabaseService {
     );
   }
 
-   // <<< FUNGSI BARU UNTUK RIWAYAT PESANAN CUSTOMER >>>
-  Future<List<models.Document>> getMyOrders(String userId) async {
+  // === FUNGSI MANAJEMEN PESANAN ===
+
+  // === FUNGSI MANAJEMEN PESANAN (DENGAN FILTER) ===
+
+  // Fungsi untuk Admin (dengan filter status opsional)
+  Future<List<models.Document>> getOrders({String? statusFilter}) async {
     try {
+      // Buat list query dasar
+      final List<String> queries = [
+        Query.orderDesc('\$createdAt'),
+      ];
+
+      // Jika ada filter status, tambahkan ke query
+      if (statusFilter != null && statusFilter.isNotEmpty) {
+        queries.add(Query.equal('status', statusFilter));
+      }
+
       final result = await databases.listDocuments(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.ordersCollectionId,
-        queries: [
-          // Filter hanya pesanan di mana 'customerId' sama dengan ID user yang login
-          Query.equal('customerId', userId),
-          // Tampilkan yang terbaru di atas
-          Query.orderDesc('\$createdAt'),
-        ],
+        queries: queries, // Gunakan list query yang sudah dibuat
+      );
+      return result.documents;
+    } catch (e) {
+      print("Gagal mendapatkan pesanan: $e");
+      return [];
+    }
+  }
+
+  // Fungsi untuk Customer (dengan filter status opsional)
+  Future<List<models.Document>> getMyOrders(String userId, {String? statusFilter}) async {
+    try {
+      // Buat list query dasar
+      final List<String> queries = [
+        Query.equal('customerId', userId),
+        Query.orderDesc('\$createdAt'),
+      ];
+
+      // Jika ada filter status, tambahkan ke query
+      if (statusFilter != null && statusFilter.isNotEmpty) {
+        queries.add(Query.equal('status', statusFilter));
+      }
+      
+      final result = await databases.listDocuments(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.ordersCollectionId,
+        queries: queries,
       );
       return result.documents;
     } catch (e) {
@@ -366,5 +384,8 @@ class DatabaseService {
       return [];
     }
   }
+  
+
+  
 
 }

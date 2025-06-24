@@ -24,7 +24,7 @@ class AdminDashboardPage extends StatefulWidget {
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   int _selectedIndex = 0;
-  
+
   // --- PERUBAHAN STATE ---
   bool _isLoadingProfile = true; // State baru untuk menandakan sedang loading
   models.Document? _userProfile;
@@ -37,11 +37,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     super.initState();
     // Inisialisasi halaman dengan data awal (kosong/placeholder)
     _pages = [
-      ProductManagementPage(databaseService: widget.databaseService, userRole: '', authService: widget.authService, ), // Role awal kosong
-OrderManagementPage(
+      ProductManagementPage(
+        databaseService: widget.databaseService,
+        userRole: '',
+        authService: widget.authService,
+      ), // Role awal kosong
+      OrderManagementPage(
         databaseService: widget.databaseService,
         authService: widget.authService,
-      ),      ProfilePage(authService: widget.authService, userProfile: null),
+      ),
+      ProfilePage(authService: widget.authService, userProfile: null),
     ];
     // Panggil fungsi untuk memuat data
     _loadUserProfile();
@@ -51,15 +56,23 @@ OrderManagementPage(
     final user = await widget.authService.getCurrentUser();
     if (user != null) {
       final profile = await widget.databaseService.getProfile(user.$id);
-      
+
       // Setelah data didapat, panggil setState
       if (mounted) {
         setState(() {
           _userProfile = profile;
           // Update halaman yang membutuhkan data profil
-          _pages[0] = ProductManagementPage(databaseService: widget.databaseService, userRole: _userProfile?.data['role'] ?? 'customer', authService: widget.authService, );
-          _pages[2] = ProfilePage(authService: widget.authService, userProfile: _userProfile);
-          _isLoadingProfile = false; // Set loading menjadi false setelah selesai
+          _pages[0] = ProductManagementPage(
+            databaseService: widget.databaseService,
+            userRole: _userProfile?.data['role'] ?? 'customer',
+            authService: widget.authService,
+          );
+          _pages[2] = ProfilePage(
+            authService: widget.authService,
+            userProfile: _userProfile,
+          );
+          _isLoadingProfile =
+              false; // Set loading menjadi false setelah selesai
         });
       }
     } else {
@@ -78,7 +91,11 @@ OrderManagementPage(
     });
   }
 
-  final List<String> _pageTitles = ['Manajemen Produk', 'Manajemen Pesanan', 'Profil Saya'];
+  final List<String> _pageTitles = [
+    'Manajemen Produk',
+    'Manajemen Pesanan',
+    'Profil Saya',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +103,7 @@ OrderManagementPage(
 
     // 1. Jika masih loading, tampilkan CircularProgressIndicator
     if (_isLoadingProfile) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // 2. Tentukan apakah user adalah admin SETELAH loading selesai
@@ -111,16 +126,23 @@ OrderManagementPage(
     return Scaffold(
       appBar: AppBar(
         title: Text(_pageTitles[_selectedIndex]),
-      ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+        
+        ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), label: 'Produk'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Pesanan'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.inventory_2_outlined),
+            label: 'Produk',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long_outlined),
+            label: 'Pesanan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profil',
+          ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
