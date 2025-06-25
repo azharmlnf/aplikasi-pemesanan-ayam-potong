@@ -1,21 +1,17 @@
 // lib/pages/admin/order_management_page.dart
 
-import 'package:app_pemesanan_ayam_potong/pages/admin/order_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
+import '../../services/pdf_service.dart'; // Import PDF Service
 import '../../widgets/order_card.dart';
+import 'order_detail_page.dart';
 
 class OrderManagementPage extends StatefulWidget {
   final DatabaseService databaseService;
   final AuthService authService;
-
-  const OrderManagementPage({
-    Key? key,
-    required this.databaseService,
-    required this.authService,
-  }) : super(key: key);
+  const OrderManagementPage({Key? key, required this.databaseService, required this.authService}) : super(key: key);
 
   @override
   _OrderManagementPageState createState() => _OrderManagementPageState();
@@ -23,65 +19,55 @@ class OrderManagementPage extends StatefulWidget {
 
 class _OrderManagementPageState extends State<OrderManagementPage> {
   Future<List<models.Document>>? _ordersFuture;
+  
+  // --- PASTIKAN VARIABEL INI ADA DI DALAM CLASS ---
   final Map<String, String> _customerNameCache = {};
+  
   final Set<String> _selectedOrderIds = {};
-
-  // --- STATE BARU UNTUK FILTER ---
-  String? _activeStatusFilter; // null berarti "Semua"
-  final List<String> _statusOptions = [
-    'pending',
-    'processed',
-    'completed',
-    'cancelled',
-  ];
-
+  String? _activeStatusFilter;
+  final List<String> _statusOptions = ['pending', 'processed', 'completed', 'cancelled'];
   bool get _isSelectionMode => _selectedOrderIds.isNotEmpty;
+  late final PdfService _pdfService;
 
   @override
   void initState() {
     super.initState();
+    _pdfService = PdfService(databaseService: widget.databaseService);
     _loadOrders();
   }
 
-  // Fungsi untuk memuat/me-refresh data dengan filter saat ini
   void _loadOrders() {
-    _selectedOrderIds.clear();
-    if (mounted) {
+    if(mounted) {
+      _selectedOrderIds.clear();
       setState(() {
-        _ordersFuture = widget.databaseService.getOrders(
-          statusFilter: _activeStatusFilter,
-        );
+        _ordersFuture = widget.databaseService.getOrders(statusFilter: _activeStatusFilter);
       });
     }
   }
-
-  // Fungsi yang dipanggil saat chip filter ditekan
-  void _onFilterSelected(String? status) {
+    void _onFilterSelected(String? status) {
     setState(() {
-      // Jika menekan chip yang sama lagi, batalkan filter
-      if (_activeStatusFilter == status) {
-        _activeStatusFilter = null;
-      } else {
-        _activeStatusFilter = status;
-      }
-      // Muat ulang data dengan filter baru
+      if (_activeStatusFilter == status) _activeStatusFilter = null;
+      else _activeStatusFilter = status;
       _loadOrders();
     });
   }
 
+  // --- PASTIKAN FUNGSI INI ADA DI DALAM CLASS ---
   Future<void> _handleRefresh() async {
-    _customerNameCache.clear();
+    _customerNameCache.clear(); // Error akan hilang karena _customerNameCache dikenali
     _loadOrders();
   }
 
+  // --- PASTIKAN FUNGSI INI ADA DI DALAM CLASS ---
   Future<String> _getCustomerName(String userId) async {
-    if (_customerNameCache.containsKey(userId))
-      return _customerNameCache[userId]!;
+    if (_customerNameCache.containsKey(userId)) return _customerNameCache[userId]!;
+    
     final profile = await widget.databaseService.getProfile(userId);
     final name = profile?.data['name'] ?? 'Customer Dihapus';
     _customerNameCache[userId] = name;
     return name;
   }
+
 
   void _changeOrderStatus(String orderId, String newStatus) async {
     try {
@@ -160,30 +146,16 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
 
   // --- FUNGSI NAVIGASI DETAIL YANG DIPERBAIKI ---
   void _navigateToDetailPage(models.Document order, String customerName) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OrderDetailPage(
-          order: order,
-          customerName: customerName,
-          databaseService: widget.databaseService,
-          authService: widget.authService,
-        ),
-      ),
-    );
-    if (result == true && mounted) _loadOrders();
+    await Navigator.push(context, MaterialPageRoute(builder: (context) => OrderDetailPage(order: order, customerName: customerName, databaseService: widget.databaseService, authService: widget.authService)));
+    _loadOrders(); // Refresh saat kembali dari detail
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Bungkus body dengan Column untuk menempatkan filter di atas list
       body: Column(
         children: [
-          // --- UI FILTER BARU ---
           _buildFilterChips(),
-
-          // Gunakan Expanded agar ListView mengisi sisa ruang
           Expanded(
             child: RefreshIndicator(
               onRefresh: _handleRefresh,
@@ -257,7 +229,57 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
             ),
           ),
         ],
-      ),
+      ),floatingActionButton: FloatingActionButton(
+  onPressed: () async {
+    // --- TAMBAHKAN LOGIKA LOADING DI SINI ---
+    final ordersToExport = await _ordersFuture;
+
+    if (ordersToExport == null || ordersToExport.isEmpty) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tidak ada data pesanan untuk diekspor.')));
+      return;
+    }
+
+    // Tampilkan dialog loading
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User tidak bisa menutup dialog dengan menekan di luar
+      builder: (BuildContext context) {
+        return const Dialog(
+          child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Membuat Laporan..."),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    try {
+      final currentUser = await widget.authService.getCurrentUser();
+      final adminProfile = currentUser != null ? await widget.databaseService.getProfile(currentUser.$id) : null;
+      final adminName = adminProfile?.data['name'] ?? 'Admin';
+
+      await _pdfService.createOrderHistoryPdf(
+        orders: ordersToExport,
+        reportTitle: 'Laporan Rekapitulasi Pesanan',
+        generatedBy: adminName,
+      );
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal membuat PDF: $e')));
+    } finally {
+      // Pastikan dialog ditutup, baik berhasil maupun gagal
+      if (mounted) Navigator.of(context).pop();
+    }
+  },
+  child: const Icon(Icons.picture_as_pdf),
+  tooltip: 'Ekspor Laporan PDF',
+),
       bottomNavigationBar: _isSelectionMode ? _buildBulkActionPanel() : null,
     );
   }

@@ -292,6 +292,7 @@ final orderId = orderDoc.$id;
           'quantity': item.quantity,
           'priceAtOrder': item.price,
           'pieces': item.pieces, // <-- PASTIKAN BARIS INI ADA
+           'name': item.name, // <-- TAMBAHKAN BARIS INI UNTUK MENYIMPAN NAMA PRODUK
         },
         permissions: [
           Permission.read(Role.user(userId)),

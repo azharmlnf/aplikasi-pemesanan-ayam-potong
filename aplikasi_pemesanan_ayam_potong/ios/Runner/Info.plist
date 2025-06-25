@@ -52,5 +52,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIPrintInteractionEnabled</key>
+	<true/>
 </dict>
 </plist>

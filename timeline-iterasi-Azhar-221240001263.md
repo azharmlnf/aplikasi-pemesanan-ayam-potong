@@ -80,11 +80,11 @@
 | 3. Implementasi fungsi untuk mengubah status pesanan (pending -> processed) pada Admin   | ✅      |
 | 4. Buat halaman "Riwayat Pesanan Saya" untuk Customer                                    | ✅      |
 | 5. Ambil dan tampilkan data pesanan milik Customer yang sedang login                     | ✅      |
-| 6. Membuat fitur eksport data agar data pesanan bisa dieksport ke pdf berdasarkan tahun,bulan,hari  baik untuk admin maupun customer                   | ❌      |
+| 6. Membuat fitur eksport data agar data pesanan bisa dieksport ke pdf  baik untuk admin maupun customer                   | ✅      |
 
-**Total task = 5**
-**Task selesai = 0**
-**Persentase progress = (0/5) × 100% = 0%**
+**Total task = 6**
+**Task selesai = 5**
+**Persentase progress = (6/6) × 100% = 100%**
 
 ---
 

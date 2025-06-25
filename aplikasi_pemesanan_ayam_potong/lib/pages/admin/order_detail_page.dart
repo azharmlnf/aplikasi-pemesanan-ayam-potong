@@ -4,19 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
 import '../../services/database_service.dart';
 import '../../services/auth_service.dart'; 
+import '../../services/pdf_service.dart';
+
 class OrderDetailPage extends StatefulWidget {
   final models.Document order;
   final String customerName;
   final DatabaseService databaseService;
-   final AuthService authService; // <<< 2. TAMBAHKAN PARAMETER INI
-
+  final AuthService authService;
 
   const OrderDetailPage({
     Key? key,
     required this.order,
     required this.customerName,
     required this.databaseService,
-    required this.authService, // <<< 3. JADIKAN WAJIB
+    required this.authService,
   }) : super(key: key);
 
   @override
@@ -25,15 +26,17 @@ class OrderDetailPage extends StatefulWidget {
 
 class _OrderDetailPageState extends State<OrderDetailPage> {
   late Future<List<models.Document>> _orderItemsFuture;
+  late final PdfService _pdfService; // Deklarasi sudah benar
 
   @override
   void initState() {
     super.initState();
-    // Ambil semua item yang terhubung dengan pesanan ini
+    // --- INISIALISASI PDF SERVICE DI SINI ---
+    _pdfService = PdfService(databaseService: widget.databaseService);
+    
     _orderItemsFuture = widget.databaseService.getOrderItems(widget.order.$id);
   }
   
-  // Fungsi pembantu untuk format tanggal
   String _formatDate(String isoDate) {
     final date = DateTime.parse(isoDate);
     return '${date.day}/${date.month}/${date.year} - ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
@@ -42,10 +45,37 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   @override
   Widget build(BuildContext context) {
     final orderData = widget.order.data;
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Detail Pesanan #${widget.order.$id.substring(0, 8)}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            onPressed: () async {
+              // Pastikan widget masih ada sebelum melanjutkan
+              if (!mounted) return;
+              
+              // Tampilkan loading indicator kecil
+              final messenger = ScaffoldMessenger.of(context);
+              messenger.showSnackBar(const SnackBar(content: Text('Membuat PDF...'), duration: Duration(seconds: 10)));
+              
+              try {
+                final items = await _orderItemsFuture;
+                // Ganti nama fungsi menjadi yang lebih spesifik
+                await _pdfService.createSingleOrderPdf(
+                  order: widget.order,
+                  orderItems: items,
+                  customerName: widget.customerName,
+                );
+              } catch (e) {
+                messenger.showSnackBar(SnackBar(content: Text('Gagal membuat PDF: $e'), backgroundColor: Colors.red));
+              } finally {
+                messenger.hideCurrentSnackBar();
+              }
+            },
+            tooltip: 'Ekspor ke PDF',
+          )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
