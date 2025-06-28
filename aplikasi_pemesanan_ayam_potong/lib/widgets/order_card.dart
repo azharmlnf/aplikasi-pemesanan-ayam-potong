@@ -59,24 +59,21 @@ class OrderCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: InkWell(
-        onTap: onTap, // Biarkan kosong, akan diisi oleh parent
+         onTap: onTap,
         onLongPress: onLongPress,
+        
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Checkbox hanya muncul jika BISA diseleksi DAN SEDANG terseleksi
-              if (canSelect && isSelected)
+              // Tampilkan ikon placeholder/check HANYA jika bisa diseleksi
+              if (canSelect)
                 Padding(
                   padding: const EdgeInsets.only(right: 8.0, top: 20),
-                  child: Icon(Icons.check_circle, color: Theme.of(context).primaryColor),
-                )
-              else if (canSelect)
-                // Tampilkan ikon placeholder jika bisa diseleksi tapi belum terseleksi
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0, top: 20),
-                  child: Icon(Icons.circle_outlined, color: Colors.grey.shade400),
+                  child: isSelected
+                      ? Icon(Icons.check_circle, color: Theme.of(context).primaryColor)
+                      : Icon(Icons.circle_outlined, color: Colors.grey.shade400),
                 ),
               
               // Konten Kartu

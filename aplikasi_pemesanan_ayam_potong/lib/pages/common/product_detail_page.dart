@@ -425,7 +425,7 @@ void _submitForm() {
               value: _selectedPieces,
               hint: const Text("Pilih Jumlah Potongan"),
               decoration: const InputDecoration(labelText: 'Dipotong Menjadi', border: OutlineInputBorder()),
-              items: widget.pieceOptions.map((p) => DropdownMenuItem(value: p, child: Text(p == 1 ? 'Utuh' : '$p bagian'))).toList(),
+              items: widget.pieceOptions.map((p) => DropdownMenuItem(value: p, child: Text(p == 1 ? '1 bagian (Utuh)' : '$p bagian'))).toList(),
               onChanged: (value) => setState(() => _selectedPieces = value),
               validator: (value) => value == null ? 'Harap pilih jumlah potongan.' : null,
             ),

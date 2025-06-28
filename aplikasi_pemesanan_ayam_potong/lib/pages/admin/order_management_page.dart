@@ -11,7 +11,11 @@ import 'order_detail_page.dart';
 class OrderManagementPage extends StatefulWidget {
   final DatabaseService databaseService;
   final AuthService authService;
-  const OrderManagementPage({Key? key, required this.databaseService, required this.authService}) : super(key: key);
+  const OrderManagementPage({
+    Key? key,
+    required this.databaseService,
+    required this.authService,
+  }) : super(key: key);
 
   @override
   _OrderManagementPageState createState() => _OrderManagementPageState();
@@ -19,13 +23,18 @@ class OrderManagementPage extends StatefulWidget {
 
 class _OrderManagementPageState extends State<OrderManagementPage> {
   Future<List<models.Document>>? _ordersFuture;
-  
+
   // --- PASTIKAN VARIABEL INI ADA DI DALAM CLASS ---
   final Map<String, String> _customerNameCache = {};
-  
+
   final Set<String> _selectedOrderIds = {};
   String? _activeStatusFilter;
-  final List<String> _statusOptions = ['pending', 'processed', 'completed', 'cancelled'];
+  final List<String> _statusOptions = [
+    'pending',
+    'processed',
+    'completed',
+    'cancelled',
+  ];
   bool get _isSelectionMode => _selectedOrderIds.isNotEmpty;
   late final PdfService _pdfService;
 
@@ -37,57 +46,65 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
   }
 
   void _loadOrders() {
-    if(mounted) {
+    if (mounted) {
       _selectedOrderIds.clear();
       setState(() {
-        _ordersFuture = widget.databaseService.getOrders(statusFilter: _activeStatusFilter);
+        _ordersFuture = widget.databaseService.getOrders(
+          statusFilter: _activeStatusFilter,
+        );
       });
     }
   }
-    void _onFilterSelected(String? status) {
+
+  void _onFilterSelected(String? status) {
     setState(() {
-      if (_activeStatusFilter == status) _activeStatusFilter = null;
-      else _activeStatusFilter = status;
+      if (_activeStatusFilter == status)
+        _activeStatusFilter = null;
+      else
+        _activeStatusFilter = status;
       _loadOrders();
     });
   }
 
   // --- PASTIKAN FUNGSI INI ADA DI DALAM CLASS ---
   Future<void> _handleRefresh() async {
-    _customerNameCache.clear(); // Error akan hilang karena _customerNameCache dikenali
+    _customerNameCache
+        .clear(); // Error akan hilang karena _customerNameCache dikenali
     _loadOrders();
   }
 
   // --- PASTIKAN FUNGSI INI ADA DI DALAM CLASS ---
   Future<String> _getCustomerName(String userId) async {
-    if (_customerNameCache.containsKey(userId)) return _customerNameCache[userId]!;
-    
+    if (_customerNameCache.containsKey(userId))
+      return _customerNameCache[userId]!;
+
     final profile = await widget.databaseService.getProfile(userId);
     final name = profile?.data['name'] ?? 'Customer Dihapus';
     _customerNameCache[userId] = name;
     return name;
   }
 
-
   void _changeOrderStatus(String orderId, String newStatus) async {
     try {
       await widget.databaseService.updateOrderStatus(orderId, newStatus);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Status pesanan berhasil diubah menjadi $newStatus.'),
             backgroundColor: Colors.green,
           ),
         );
+      }
       _loadOrders();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal mengubah status: $e'),
             backgroundColor: Colors.red,
           ),
         );
+      }
     }
   }
 
@@ -108,7 +125,7 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
         idsToUpdate,
         newStatus,
       );
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -117,15 +134,17 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
             backgroundColor: Colors.green,
           ),
         );
-      _loadOrders();
+        _loadOrders();
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal melakukan aksi massal: $e'),
             backgroundColor: Colors.red,
           ),
         );
+      }
     }
   }
 
@@ -146,7 +165,17 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
 
   // --- FUNGSI NAVIGASI DETAIL YANG DIPERBAIKI ---
   void _navigateToDetailPage(models.Document order, String customerName) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (context) => OrderDetailPage(order: order, customerName: customerName, databaseService: widget.databaseService, authService: widget.authService)));
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderDetailPage(
+          order: order,
+          customerName: customerName,
+          databaseService: widget.databaseService,
+          authService: widget.authService,
+        ),
+      ),
+    );
     _loadOrders(); // Refresh saat kembali dari detail
   }
 
@@ -209,16 +238,38 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
                           final customerName =
                               nameSnapshot.data ?? 'Nama Tidak Ditemukan';
 
+                          // --- INI ADALAH LOGIKA UTAMA YANG DIPERBAIKI ---
                           return OrderCard(
                             order: order,
                             customerName: customerName,
-                            onStatusChanged: (newStatus) =>
-                                _changeOrderStatus(order.$id, newStatus),
-                            onTap: () =>
-                                _navigateToDetailPage(order, customerName),
+                            onStatusChanged: (newStatus) {
+                              _changeOrderStatus(order.$id, newStatus);
+                            },
+
                             isSelected: _selectedOrderIds.contains(order.$id),
-                            onSelected: (isSelected) =>
-                                _onOrderSelected(order.$id, isSelected),
+
+                            // onTap: Cerdas berdasarkan mode
+                            onTap: () {
+                              if (_isSelectionMode) {
+                                // Jika sudah dalam mode seleksi, onTap akan menambah/menghapus item
+                                _onOrderSelected(
+                                  order.$id,
+                                  !_selectedOrderIds.contains(order.$id),
+                                );
+                              } else {
+                                // Jika tidak, onTap akan membuka halaman detail
+                                _navigateToDetailPage(order, customerName);
+                              }
+                            },
+
+                            // onLongPress: Selalu memulai mode seleksi
+                            onLongPress: () {
+                              // Long press selalu untuk menambah/menghapus item
+                              _onOrderSelected(
+                                order.$id,
+                                !_selectedOrderIds.contains(order.$id),
+                              );
+                            },
                           );
                         },
                       );
@@ -229,57 +280,69 @@ class _OrderManagementPageState extends State<OrderManagementPage> {
             ),
           ),
         ],
-      ),floatingActionButton: FloatingActionButton(
-  onPressed: () async {
-    // --- TAMBAHKAN LOGIKA LOADING DI SINI ---
-    final ordersToExport = await _ordersFuture;
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          // --- TAMBAHKAN LOGIKA LOADING DI SINI ---
+          final ordersToExport = await _ordersFuture;
 
-    if (ordersToExport == null || ordersToExport.isEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tidak ada data pesanan untuk diekspor.')));
-      return;
-    }
+          if (ordersToExport == null || ordersToExport.isEmpty) {
+            if (mounted){}
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tidak ada data pesanan untuk diekspor.'),
+                ),
+              );
+            return;
+          }
 
-    // Tampilkan dialog loading
-    showDialog(
-      context: context,
-      barrierDismissible: false, // User tidak bisa menutup dialog dengan menekan di luar
-      builder: (BuildContext context) {
-        return const Dialog(
-          child: Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(width: 20),
-                Text("Membuat Laporan..."),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+          // Tampilkan dialog loading
+          showDialog(
+            context: context,
+            barrierDismissible:
+                false, // User tidak bisa menutup dialog dengan menekan di luar
+            builder: (BuildContext context) {
+              return const Dialog(
+                child: Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(width: 20),
+                      Text("Membuat Laporan..."),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
 
-    try {
-      final currentUser = await widget.authService.getCurrentUser();
-      final adminProfile = currentUser != null ? await widget.databaseService.getProfile(currentUser.$id) : null;
-      final adminName = adminProfile?.data['name'] ?? 'Admin';
+          try {
+            final currentUser = await widget.authService.getCurrentUser();
+            final adminProfile = currentUser != null
+                ? await widget.databaseService.getProfile(currentUser.$id)
+                : null;
+            final adminName = adminProfile?.data['name'] ?? 'Admin';
 
-      await _pdfService.createOrderHistoryPdf(
-        orders: ordersToExport,
-        reportTitle: 'Laporan Rekapitulasi Pesanan',
-        generatedBy: adminName,
-      );
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal membuat PDF: $e')));
-    } finally {
-      // Pastikan dialog ditutup, baik berhasil maupun gagal
-      if (mounted) Navigator.of(context).pop();
-    }
-  },
-  child: const Icon(Icons.picture_as_pdf),
-  tooltip: 'Ekspor Laporan PDF',
-),
+            await _pdfService.createOrderHistoryPdf(
+              orders: ordersToExport,
+              reportTitle: 'Laporan Rekapitulasi Pesanan',
+              generatedBy: adminName,
+            );
+          } catch (e) {
+            if (mounted)
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Gagal membuat PDF: $e')));
+          } finally {
+            // Pastikan dialog ditutup, baik berhasil maupun gagal
+            if (mounted) Navigator.of(context).pop();
+          }
+        },
+        child: const Icon(Icons.picture_as_pdf),
+        tooltip: 'Ekspor Laporan PDF',
+      ),
       bottomNavigationBar: _isSelectionMode ? _buildBulkActionPanel() : null,
     );
   }
