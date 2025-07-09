@@ -92,11 +92,11 @@
 
 | Task                                                                                            | Status |
 | ----------------------------------------------------------------------------------------------- | ------ |
-| 1. Lakukan pengujian alur Customer (registrasi -> login -> pesan -> lihat riwayat)              | ❌      |
-| 2. Lakukan pengujian alur Admin (login -> tambah produk -> lihat detail pesanan -> ubah status) | ❌      |
-| 3. Tambahkan feedback visual (loading indicator, snackbar) di semua proses async                | ❌      |
-| 4. Perbaiki semua bug kritis dan masalah UI/UX yang ditemukan saat pengujian                    | ❌      |
-| 5. Buat build rilis untuk Android (.apk) dan persiapkan untuk build iOS                         | ❌      |
+| 1. Lakukan pengujian alur Customer (registrasi -> login -> pesan -> lihat riwayat)              | ✅      |
+| 2. Lakukan pengujian alur Admin (login -> tambah produk -> lihat detail pesanan -> ubah status) | ✅      |
+| 3. Tambahkan feedback visual (loading indicator, snackbar) di semua proses async                | ✅      |
+| 4. Perbaiki semua bug kritis dan masalah UI/UX yang ditemukan saat pengujian                    | ✅      |
+| 5. Buat build rilis untuk Android (.apk)                        | ✅      |
 
 **Total task = 5**
 **Task selesai = 0**
